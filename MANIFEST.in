@@ -1,0 +1,24 @@
+include LICENSE
+include README.md
+include pyproject.toml
+
+recursive-include fastapi_mason *.py
+recursive-include fastapi_mason *.json
+recursive-include fastapi_mason *.txt
+
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude *.so
+global-exclude .git
+global-exclude .gitignore
+global-exclude .env*
+global-exclude .venv
+global-exclude .vscode
+global-exclude .ruff_cache
+global-exclude *.egg-info
+global-exclude build
+global-exclude dist
+global-exclude uv.lock
+global-exclude requirements.txt
+global-exclude run.py
+global-exclude app

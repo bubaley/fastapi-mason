@@ -1,0 +1,75 @@
+[build-system]
+build-backend = "hatchling.build"
+
+requires = [ "hatchling" ]
+
+[project]
+name = "fastapi-mason"
+version = "0.0.1"
+description = "Django REST Framework-inspired ViewSets and utilities for FastAPI"
+readme = "README.md"
+keywords = [
+    "django",
+    "drf",
+    "performance",
+    "preloading",
+    "queryset-optimization",
+    "relations",
+    "rest-framework",
+    "serializer",
+]
+license = { text = "MIT" }
+maintainers = [ { name = "bubaley", email = "bubaley.fu@gmail.com" } ]
+authors = [ { name = "bubaley", email = "bubaley.fu@gmail.com" } ]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+dependencies = [ "fastapi>=0.115.13", "tortoise-orm>=0.25.1" ]
+
+urls.Documentation = "https://github.com/bubaley/fastapi_mason#readme"
+urls.Homepage = "https://github.com/bubaley/fastapi_mason"
+urls.Repository = "https://github.com/bubaley/fastapi_mason.git"
+
+[dependency-groups]
+# Ruff configuration
+dev = [
+    "aerich[toml]>=0.9.1",
+    "coverage>=7.9.2",
+    "pre-commit>=4.2.0",
+    "pydantic-settings>=2.10.1",
+    "ruff>=0.12.2",
+    "uvicorn[standard]>=0.35.0",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+indent-width = 4
+fix = true
+format.quote-style = "single"
+format.line-ending = "auto"
+format.skip-magic-trailing-comma = false
+lint.extend-select = [ "I" ]
+lint.extend-per-file-ignores."core/settings/*.py" = [ "F403", "F405" ]
+# Bandit configuration
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.bandit]
+skips = [ "B101" ]
+exclude_dirs = [ "tests", "*/tests/*", "*/migrations/*" ]
+
+[tool.aerich]
+tortoise_orm = "app.core.database.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
