@@ -1,13 +1,15 @@
 """
-Utility functions for FastAPI+ core functionality.
+Utility functions for FastAPI Mason core functionality.
 """
 
+import inspect
 from typing import TYPE_CHECKING, Any, Callable, Dict
 
+from fastapi import Request
 from fastapi.routing import APIRoute
 
 if TYPE_CHECKING:
-    from fastapi_mason.generics import GenericViewSet
+    from .generics import GenericViewSet
 
 
 BASE_ROUTE_PATHS = {
@@ -22,15 +24,6 @@ BASE_ROUTE_PATHS = {
 def sort_routes_by_specificity(routes: list[APIRoute]) -> list[APIRoute]:
     """
     Sort routes by specificity to ensure proper route matching.
-
-    Routes with path parameters are considered less specific than static paths.
-    HTTP methods are ordered by priority: GET, POST, PUT/PATCH, DELETE.
-
-    Args:
-        routes: List of FastAPI routes to sort
-
-    Returns:
-        Sorted list of routes
     """
     method_priority: Dict[str, int] = {
         'GET': 0,
@@ -41,55 +34,149 @@ def sort_routes_by_specificity(routes: list[APIRoute]) -> list[APIRoute]:
     }
 
     def route_score(route: APIRoute) -> tuple:
-        """Calculate score for route sorting."""
         parts = route.path.strip('/').split('/')
         path_score = []
 
         for part in parts:
             if part.startswith('{') and part.endswith('}'):
-                # Path parameter is less specific
                 path_score.append(1)
             else:
-                # Static path is more specific
                 path_score.append(0)
 
         method_score = min(method_priority.get(method.upper(), 99) for method in route.methods)
 
         return (path_score, method_score)
 
-    return sorted(routes, key=route_score)
+    return sorted(routes, key=lambda route: route_score(route))
+
+
+def create_endpoint_wrapper(
+    viewset: 'GenericViewSet',
+    endpoint: Callable,
+    name: str,
+) -> Callable:
+    """
+    Universal endpoint wrapper that applies to all methods.
+
+    This wrapper ensures that all endpoints (both from mixins and @action)
+    go through the same decorator pipeline.
+    """
+    # Get original function signature
+    original_sig = inspect.signature(endpoint)
+
+    async def wrapped_endpoint(*args, **kwargs):
+        """Universal endpoint wrapper."""
+
+        state = viewset.state
+        setattr(state, 'request', get_request(*args, **kwargs))
+        setattr(state, 'action', name)
+        await viewset.check_permissions()
+        # Call original function
+        try:
+            return await endpoint(*args, **kwargs)
+        finally:
+            state._clear_state()
+
+    # Preserve original function metadata
+    wrapped_endpoint.__signature__ = original_sig
+    wrapped_endpoint.__name__ = endpoint.__name__
+    wrapped_endpoint.__doc__ = endpoint.__doc__
+    wrapped_endpoint.__annotations__ = getattr(endpoint, '__annotations__', {})
+
+    return wrapped_endpoint
+
+
+def add_wrapped_route(
+    viewset: 'GenericViewSet',
+    name: str,
+    path: str,
+    endpoint: Any,
+    methods: list[str],
+    response_model: Any = None,
+    **kwargs,
+):
+    """
+    Add a wrapped route to the viewset router.
+
+    This function applies the universal decorator to the endpoint before adding it to the router.
+    It also automatically adds 'request' parameter if it's not present in the endpoint signature.
+    """
+    # Check if route already exists to prevent duplicates
+    existing_route_names = {getattr(route, 'name', None) for route in viewset.router.routes}
+    if name in existing_route_names:
+        return  # Route already exists, skip
+
+    # Get original function signature
+    original_sig = inspect.signature(endpoint)
+    params = list(original_sig.parameters.values())
+
+    # Check if 'request' parameter exists
+    has_request_param = any(param.name == 'request' for param in params)
+
+    # If no request parameter, add it at the beginning (before any default parameters)
+    if not has_request_param:
+        request_param = inspect.Parameter('request', inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=Request)
+        params.insert(0, request_param)
+
+        # Create new signature with added request parameter
+        new_signature = inspect.Signature(parameters=params, return_annotation=original_sig.return_annotation)
+
+        # Create a wrapper that adds request but doesn't pass it to original function
+        async def request_injected_endpoint(*args, **kwargs):
+            """Endpoint with auto-injected request parameter."""
+            # Remove 'request' from kwargs before calling original function
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'request'}
+            return await endpoint(*args, **filtered_kwargs)
+
+        # Set the new signature and metadata
+        request_injected_endpoint.__signature__ = new_signature
+        request_injected_endpoint.__name__ = endpoint.__name__
+        request_injected_endpoint.__doc__ = endpoint.__doc__
+
+        # Copy annotations and add Request
+        annotations = getattr(endpoint, '__annotations__', {}).copy()
+        annotations['request'] = Request
+        request_injected_endpoint.__annotations__ = annotations
+
+        # Use the modified endpoint
+        final_endpoint = request_injected_endpoint
+    else:
+        # Use original endpoint if it already has request parameter
+        final_endpoint = endpoint
+
+    # Apply universal decorator to the endpoint
+    wrapped_endpoint = create_endpoint_wrapper(
+        viewset=viewset,
+        endpoint=final_endpoint,
+        name=name,
+    )
+
+    # Add the wrapped endpoint to the router
+    viewset.router.add_api_route(
+        path=path,
+        endpoint=wrapped_endpoint,
+        methods=methods,
+        response_model=response_model,
+        name=name,
+        **kwargs,
+    )
 
 
 def register_action_route(viewset: 'GenericViewSet', method: Callable):
     """
     Register a single action method as a route.
-
-    Args:
-        method_name: Name of the method
-        method: Method object with action metadata
     """
-    import inspect
-
     # Get action metadata
     action_methods = method._action_methods
     is_detail = method._action_detail
-
     action_path = method._action_path
     action_name = method._action_name or method.__name__
     action_response_model = method._action_response_model
     action_kwargs = getattr(method, '_action_kwargs', {})
 
-    # Build the URL path
-    # parts = []
-    # if is_detail:
-    #     parts.append("/{item_id}")
-    # if action_path:
-    #     parts.append(action_path)
-    # path = "/" + "/".join(parts) if parts else "/"
+    path = build_route_path(action_name, is_detail, action_path)
 
-    # full_path = viewset.router.prefix.rstrip("/") + path
-    path = build_route_path(viewset.router.prefix, action_name, is_detail, action_path)
-
+    # Remove existing routes with same name/path
     routes_to_remove = []
     for route in viewset.router.routes:
         if isinstance(route, APIRoute):
@@ -107,112 +194,72 @@ def register_action_route(viewset: 'GenericViewSet', method: Callable):
     original_sig = inspect.signature(method)
     params = list(original_sig.parameters.values())[1:]  # Skip 'self'
 
-    # Create new signature without 'self'
-    new_signature = inspect.Signature(parameters=params, return_annotation=original_sig.return_annotation)
+    # Check if 'request' parameter exists in original method
+    has_request_param = any(param.name == 'request' for param in params)
 
-    # Create the endpoint function that preserves original signature
-    def create_action_endpoint(action_name: str):
-        # We need to create the function dynamically to preserve the exact signature
+    # Create signature for FastAPI endpoint (without 'self')
+    # If method doesn't have request param, add it for FastAPI
+    endpoint_params = params.copy()
+    if not has_request_param:
+        request_param = inspect.Parameter('request', inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=Request)
+        endpoint_params.insert(0, request_param)
 
-        async def action_endpoint(**endpoint_kwargs):
-            """Action endpoint wrapper."""
-            # Extract request if present
-            request = endpoint_kwargs.get('request')
+    new_signature = inspect.Signature(parameters=endpoint_params, return_annotation=original_sig.return_annotation)
 
-            # Check permissions
-            if request:
-                viewset.check_permissions(request)
+    # Create endpoint function that properly handles method parameters
+    async def action_endpoint(*args, **kwargs):
+        """Action endpoint function."""
+        # Get original method parameter names (excluding 'self')
+        original_param_names = {param.name for param in original_sig.parameters.values() if param.name != 'self'}
 
-            # For detail actions, check object permissions
-            if is_detail and request:
-                lookup_field = viewset._get_lookup_field()
-                lookup_value = endpoint_kwargs.get(lookup_field)
-                if lookup_value:
-                    # Get object and check object-level permissions
-                    await viewset.get_object(lookup_value, request)
+        # Prepare kwargs for the original method
+        method_kwargs = {}
 
-            # Call the original action method with self and proper arguments
-            # Map endpoint_kwargs to the original method parameters
-            method_kwargs = {}
-            for param in params:
-                if param.name in endpoint_kwargs:
-                    method_kwargs[param.name] = endpoint_kwargs[param.name]
+        # If original method expects 'request' parameter, include it
+        if has_request_param and 'request' in kwargs:
+            method_kwargs['request'] = kwargs['request']
 
-            return await method(viewset, **method_kwargs)
+        # Add other parameters that the method expects
+        for param_name, param_value in kwargs.items():
+            if param_name in original_param_names and param_name != 'request':
+                method_kwargs[param_name] = param_value
 
-        return action_endpoint
+        # Call the original method with viewset instance and filtered kwargs
+        return await method(viewset, **method_kwargs)
 
-    action_endpoint = create_action_endpoint(action_name)
-
-    # Set the correct signature for FastAPI documentation
+    # Set correct signature and metadata for FastAPI documentation
     action_endpoint.__signature__ = new_signature
     action_endpoint.__name__ = method.__name__
     action_endpoint.__doc__ = method.__doc__
 
-    # Copy annotations but remove 'self'
+    # Copy annotations from original method, remove 'self', add Request if needed
     annotations = getattr(method, '__annotations__', {}).copy()
     if 'self' in annotations:
         del annotations['self']
+    if not has_request_param:
+        annotations['request'] = Request
     action_endpoint.__annotations__ = annotations
 
-    add_route(
+    # Use add_wrapped_route to apply decorator
+    add_wrapped_route(
         viewset=viewset,
+        name=action_name,
         path=path,
         endpoint=action_endpoint,
         methods=action_methods,
-        name=action_name,
         response_model=action_response_model,
         **action_kwargs,
     )
 
 
-def add_route(
-    viewset: 'GenericViewSet',
-    path: str,
-    endpoint: Any,
-    methods: list[str],
-    response_model: Any = None,
-    status_code: int = 200,
-    name: str = None,
-    **kwargs,
-):
-    """
-    Add a route to the viewset router.
-
-    This method is used by mixins to add their specific routes.
-
-    Args:
-        path: URL path for the route
-        endpoint: Endpoint function
-        methods: HTTP methods
-        response_model: Pydantic model for response
-        status_code: HTTP status code
-        name: Route name
-        **kwargs: Additional FastAPI route parameters
-    """
-    # Check if route already exists
-    existing_route_names = {route.name for route in viewset.router.routes}
-
-    if name and name in existing_route_names:
-        return  # Route already exists
-
-    viewset.router.add_api_route(
-        path=path,
-        endpoint=endpoint,
-        methods=methods,
-        response_model=response_model,
-        status_code=status_code,
-        name=name,
-        **kwargs,
-    )
-
-
 def build_route_path(
-    prefix: str,
     action_name: str,
     is_detail: bool = False,
     action_path: str | None = None,
 ) -> str:
+    """
+    Build route path for an action.
+    """
     if action_name in BASE_ROUTE_PATHS:
         return BASE_ROUTE_PATHS[action_name]
     elif action_path is None:
@@ -225,6 +272,16 @@ def build_route_path(
         cleaned_action_path = action_path.strip('/')
         if cleaned_action_path:
             parts.append(cleaned_action_path)
-    path = '/' + '/'.join(parts)
-    prefix = prefix.strip('/')
-    return '/' + prefix + path if prefix else path
+    return '/' + '/'.join(parts)
+
+
+def get_request(*args, **kwargs):
+    """
+    Get the request from the arguments.
+    """
+    if 'request' in kwargs:
+        return kwargs['request']
+    else:
+        for arg in args:
+            if isinstance(arg, Request):
+                return arg

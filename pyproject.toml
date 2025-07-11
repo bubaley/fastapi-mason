@@ -5,18 +5,16 @@ requires = [ "hatchling" ]
 
 [project]
 name = "fastapi-mason"
-version = "0.0.1"
-description = "Django REST Framework-inspired ViewSets and utilities for FastAPI"
+version = "0.1.0"
+description = "FastAPI Mason is a library for building FastAPI applications with a Django REST Framework-inspired architecture."
 readme = "README.md"
 keywords = [
     "django",
-    "drf",
-    "performance",
-    "preloading",
-    "queryset-optimization",
-    "relations",
-    "rest-framework",
-    "serializer",
+    "django-rest-framework",
+    "fastapi",
+    "pagination",
+    "tortoise",
+    "viewsets",
 ]
 license = { text = "MIT" }
 maintainers = [ { name = "bubaley", email = "bubaley.fu@gmail.com" } ]
@@ -42,13 +40,13 @@ urls.Homepage = "https://github.com/bubaley/fastapi_mason"
 urls.Repository = "https://github.com/bubaley/fastapi_mason.git"
 
 [dependency-groups]
-# Ruff configuration
 dev = [
     "aerich[toml]>=0.9.1",
     "coverage>=7.9.2",
     "pre-commit>=4.2.0",
     "pydantic-settings>=2.10.1",
     "ruff>=0.12.2",
+    "tortoise-orm>=0.25.1",
     "uvicorn[standard]>=0.35.0",
 ]
 
@@ -62,7 +60,6 @@ format.line-ending = "auto"
 format.skip-magic-trailing-comma = false
 lint.extend-select = [ "I" ]
 lint.extend-per-file-ignores."core/settings/*.py" = [ "F403", "F405" ]
-# Bandit configuration
 lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.bandit]

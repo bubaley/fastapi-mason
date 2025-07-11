@@ -1,5 +1,5 @@
 """
-Validation utilities for FastAPI+ viewsets.
+Validation utilities for FastAPI Mason viewsets.
 
 Provides validation functions to ensure viewset configurations are correct
 and catch common errors early.
@@ -23,12 +23,6 @@ def validate_viewset_config(cls: Type[Any]) -> None:
 
     Checks that all required attributes are properly configured
     and raises descriptive errors for common misconfigurations.
-
-    Args:
-        cls: Viewset class to validate
-
-    Raises:
-        ViewSetConfigError: If configuration is invalid
     """
     class_name = cls.__name__
 
@@ -134,13 +128,6 @@ def _validate_response_wrappers(cls: Type[Any], class_name: str) -> None:
 def validate_action_method(func: Any, viewset_cls: Type[Any]) -> None:
     """
     Validate that an action method is properly configured.
-
-    Args:
-        func: Function marked as action
-        viewset_cls: Viewset class that contains the action
-
-    Raises:
-        ViewSetConfigError: If action configuration is invalid
     """
     if not hasattr(func, '_is_action'):
         return

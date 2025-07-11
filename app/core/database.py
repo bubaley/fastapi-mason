@@ -1,9 +1,13 @@
 from fastapi import FastAPI
+from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 
 from app.core.settings import settings
 
-MODELS = ['app.project.models']
+MODELS = [
+    'app.domains.project.models',
+    'app.domains.company.models',
+]
 
 TORTOISE_ORM = {
     'connections': {'default': settings.database_url},
@@ -24,3 +28,6 @@ def register_database(app: FastAPI):
         generate_schemas=False,
         add_exception_handlers=True,
     )
+
+
+Tortoise.init_models(MODELS, 'models')

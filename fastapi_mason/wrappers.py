@@ -1,8 +1,7 @@
 """
-Response wrapper classes for FastAPI+ library.
+Response wrapper classes for FastAPI Mason library.
 
-Provides flexible response formatting and wrapping strategies
-for API responses.
+Provides flexible response formatting and wrapping strategies for API responses.
 """
 
 from abc import ABC, abstractmethod
@@ -17,26 +16,13 @@ PaginationType = TypeVar('PaginationType', bound=Pagination)
 
 
 class ResponseWrapper(ABC, BaseModel, Generic[T]):
-    """
-    Abstract base class for response wrappers.
-
-    Response wrappers are used to format API responses in a consistent way.
-    They can add metadata, status information, or structure data in a specific format.
-    """
+    """Abstract base class for response wrappers."""
 
     @classmethod
     @abstractmethod
-    def wrap(cls, data: T, *args, **kwargs) -> 'ResponseWrapper':
+    def wrap(cls, data: T | List[T], *args, **kwargs) -> 'ResponseWrapper':
         """
         Wrap data in the response format.
-
-        Args:
-            data: The data to wrap
-            *args: Additional positional arguments
-            **kwargs: Additional keyword arguments
-
-        Returns:
-            Wrapped response
         """
         pass
 
@@ -56,15 +42,6 @@ class PaginatedResponseWrapper(ABC, BaseModel, Generic[T, PaginationType]):
     ) -> 'PaginatedResponseWrapper':
         """
         Wrap paginated data in the response format.
-
-        Args:
-            data: The list of data items
-            pagination: Pagination metadata
-            *args: Additional positional arguments
-            **kwargs: Additional keyword arguments
-
-        Returns:
-            Wrapped paginated response
         """
         pass
 
@@ -88,26 +65,6 @@ class ResponseDataWrapper(ResponseWrapper[T]):
     def wrap(cls, data: T, *args, **kwargs) -> 'ResponseDataWrapper':
         """Wrap data in data field."""
         return cls(data=data)
-
-
-class StatusResponseWrapper(ResponseWrapper[T]):
-    """
-    Wrapper that includes status field along with data.
-
-    Example:
-    {
-        "status": "success",
-        "data": {...}
-    }
-    """
-
-    status: str = 'success'
-    data: T
-
-    @classmethod
-    def wrap(cls, data: T, status: str = 'success', *args, **kwargs) -> 'StatusResponseWrapper':
-        """Wrap data with status field."""
-        return cls(data=data, status=status)
 
 
 class ListDataWrapper(ResponseWrapper[T]):

@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     app_name: str = 'My FastAPI App'
 
-    debug: bool = Field(True)
-    database_url: str = Field('sqlite://db.sqlite3')
+    debug: bool = Field(default=True)
+    database_url: str = Field(default='sqlite://db.sqlite3')
 
 
 settings = Settings()

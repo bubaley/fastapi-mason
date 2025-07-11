@@ -1,5 +1,5 @@
 """
-Base viewset classes for FastAPI+ library.
+Base viewset classes for FastAPI Mason library.
 
 These classes inherit from GenericViewSet and use mixins to add specific routes.
 They are simple classes that combine the generic functionality with route mixins.
@@ -24,9 +24,7 @@ class ModelViewSet(
     UpdateMixin,
     DestroyMixin,
 ):
-    """
-    Base viewset providing full CRUD operations.
-    """
+    """Base viewset providing full CRUD operations."""
 
     pass
 
@@ -36,8 +34,6 @@ class ReadOnlyViewSet(
     ListMixin,
     RetrieveMixin,
 ):
-    """
-    Read-only viewset providing list and retrieve operations.
-    """
+    """Read-only viewset providing list and retrieve operations."""
 
     pass

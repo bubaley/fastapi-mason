@@ -1,100 +1,55 @@
 """
-Concrete pagination implementations for FastAPI+ library.
+Concrete pagination implementations for FastAPI Mason library.
 
 Provides ready-to-use pagination classes for different pagination strategies.
 """
 
 import math
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Any, Generic
 
 from fastapi import Query
 from pydantic import BaseModel
 from tortoise.queryset import QuerySet
 
-from fastapi_mason.types import T
+from fastapi_mason.types import ModelType
 
 
-class Pagination(ABC, BaseModel, Generic[T]):
-    """
-    Abstract base class for pagination implementations.
-
-    All pagination classes should inherit from this class and implement
-    the required abstract methods.
-    """
+class Pagination(ABC, BaseModel, Generic[ModelType]):
+    """Abstract base class for pagination implementations."""
 
     @classmethod
     @abstractmethod
     def from_query(cls, **kwargs) -> 'Pagination':
-        """
-        Create pagination instance from query parameters.
-
-        Args:
-            **kwargs: Query parameters
-
-        Returns:
-            Pagination instance
-        """
+        """Create pagination instance from query parameters."""
         pass
 
     @abstractmethod
-    def paginate(self, queryset: QuerySet[T]) -> QuerySet[T]:
-        """
-        Apply pagination to a queryset.
-
-        Args:
-            queryset: The queryset to paginate
-
-        Returns:
-            Paginated queryset
-        """
+    def paginate(self, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
+        """Apply pagination to a queryset."""
         pass
 
-    async def fill_meta(self, queryset: QuerySet[T]) -> None:
-        """
-        Fill pagination metadata (like total count, pages, etc.).
-
-        This method is called after pagination to populate additional
-        metadata that might be needed for the response.
-
-        Args:
-            queryset: Original (unpaginated) queryset
-        """
+    async def fill_meta(self, queryset: QuerySet[ModelType]) -> None:
+        """Fill pagination metadata (like total count, pages, etc.)."""
         pass
 
 
 # Concrete implementations
 
 
-class DisabledPagination(Pagination[T]):
-    """
-    Pagination class that disables pagination.
-
-    This class returns the entire queryset without any limits or offsets.
-    Useful when pagination is not needed or should be disabled for specific endpoints.
-    """
+class DisabledPagination(Pagination[ModelType]):
+    """Pagination class that disables pagination."""
 
     @classmethod
     def from_query(cls) -> 'DisabledPagination':
-        """Create instance without any query parameters."""
         return cls()
 
-    def paginate(self, queryset: QuerySet[T]) -> QuerySet[T]:
-        """Return the queryset unchanged."""
+    def paginate(self, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
         return queryset
 
 
-class LimitOffsetPagination(Pagination[T]):
-    """
-    Limit/Offset based pagination.
-
-    This pagination style uses 'limit' and 'offset' parameters to control
-    the number of items returned and how many to skip.
-
-    Query parameters:
-    - offset: Number of records to skip (default: 0)
-    - limit: Maximum number of records to return (default: 10, max: 100)
-    """
+class LimitOffsetPagination(Pagination[ModelType]):
+    """Limit/Offset based pagination."""
 
     offset: int = 0
     limit: int = 10
@@ -106,29 +61,17 @@ class LimitOffsetPagination(Pagination[T]):
         offset: int = Query(0, ge=0, description='Number of records to skip'),
         limit: int = Query(10, ge=1, le=100, description='Number of records to return'),
     ) -> 'LimitOffsetPagination':
-        """Create instance from query parameters."""
         return cls(offset=offset, limit=limit)
 
-    def paginate(self, queryset: QuerySet[T]) -> QuerySet[T]:
-        """Apply limit and offset to the queryset."""
+    def paginate(self, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
         return queryset.offset(self.offset).limit(self.limit)
 
-    async def fill_meta(self, queryset: QuerySet[T]) -> None:
-        """Fill total count metadata."""
+    async def fill_meta(self, queryset: QuerySet[ModelType]) -> None:
         self.total = await queryset.count()
 
 
-class PageNumberPagination(Pagination[T]):
-    """
-    Page number based pagination.
-
-    This pagination style uses 'page' and 'size' parameters to control
-    which page to return and how many items per page.
-
-    Query parameters:
-    - page: Page number to return (default: 1)
-    - size: Number of records per page (default: 10, max: 100)
-    """
+class PageNumberPagination(Pagination[ModelType]):
+    """Page number based pagination."""
 
     page: int = 1
     size: int = 10
@@ -141,32 +84,19 @@ class PageNumberPagination(Pagination[T]):
         page: int = Query(1, ge=1, description='Page number'),
         size: int = Query(10, ge=1, le=100, description='Number of records per page'),
     ) -> 'PageNumberPagination':
-        """Create instance from query parameters."""
         return cls(page=page, size=size)
 
-    def paginate(self, queryset: QuerySet[T]) -> QuerySet[T]:
-        """Apply pagination based on page number and size."""
+    def paginate(self, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
         offset = (self.page - 1) * self.size
         return queryset.offset(offset).limit(self.size)
 
-    async def fill_meta(self, queryset: QuerySet[T]) -> None:
-        """Fill pagination metadata including total count and pages."""
+    async def fill_meta(self, queryset: QuerySet[ModelType]) -> None:
         self.total = await queryset.count()
         self.pages = math.ceil(self.total / self.size) if self.size > 0 else 0
 
 
-class CursorPagination(Pagination[T]):
-    """
-    Cursor based pagination.
-
-    This pagination style uses a cursor (usually an ID or timestamp) to determine
-    the starting point for the next page. This is more efficient for large datasets
-    as it doesn't require counting all records.
-
-    Query parameters:
-    - cursor: The cursor value to start from
-    - size: Number of records per page (default: 10, max: 100)
-    """
+class CursorPagination(Pagination[ModelType]):
+    """Cursor based pagination."""
 
     cursor: str | None = None
     size: int = 10
@@ -185,36 +115,16 @@ class CursorPagination(Pagination[T]):
         cursor: str | None = Query(None, description='Cursor for pagination'),
         size: int = Query(10, ge=1, le=100, description='Number of records per page'),
     ) -> 'CursorPagination':
-        """Create instance from query parameters."""
         return cls(cursor=cursor, size=size)
 
     def get_cursor_field(self) -> str:
-        """Get the field name used for cursor pagination."""
         return self.cursor_field
 
-    def encode_cursor(self, obj: T) -> str:
-        """
-        Encode cursor from model instance.
-
-        Args:
-            obj: Model instance
-
-        Returns:
-            Encoded cursor string
-        """
+    def encode_cursor(self, obj: ModelType) -> str:
         field_value = getattr(obj, self.get_cursor_field())
         return str(field_value)
 
-    def decode_cursor(self, cursor_str: str) -> any:
-        """
-        Decode cursor string to field value.
-
-        Args:
-            cursor_str: Cursor string
-
-        Returns:
-            Decoded cursor value
-        """
+    def decode_cursor(self, cursor_str: str) -> Any:
         if not cursor_str:
             return None
 
@@ -225,16 +135,7 @@ class CursorPagination(Pagination[T]):
             # If not int, return as string
             return cursor_str
 
-    def paginate(self, queryset: QuerySet[T]) -> QuerySet[T]:
-        """
-        Apply cursor-based pagination.
-
-        Args:
-            queryset: The queryset to paginate
-
-        Returns:
-            Paginated queryset
-        """
+    def paginate(self, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
         cursor_field = self.get_cursor_field()
 
         # Apply cursor filter if provided
@@ -257,16 +158,8 @@ class CursorPagination(Pagination[T]):
         # Get one extra record to check if there's a next page
         return queryset.limit(self.size + 1)
 
-    async def fill_meta(self, queryset: QuerySet[T]) -> None:
-        """
-        Fill cursor metadata.
-
-        This method is called after pagination to populate cursor information
-        for next/previous page navigation.
-
-        Args:
-            queryset: Original (unpaginated) queryset
-        """
+    async def fill_meta(self, queryset: QuerySet[ModelType]) -> None:
+        """Fill cursor metadata."""
         # Get the paginated results to determine cursor metadata
         paginated_query = self.paginate(queryset)
         results = await paginated_query

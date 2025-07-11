@@ -1,20 +1,20 @@
 """
-Generic ViewSet class providing base functionality for FastAPI+ library.
+Generic ViewSet class providing base functionality for FastAPI Mason library.
 
 This is the core class that contains all the base methods and setup logic.
 Mixins will only add routes to this generic viewset.
 """
 
-from typing import Any, Generic, List, Type
+from typing import Any, Generic, List, Optional, Type
 
 from fastapi import APIRouter, HTTPException, Request
 from tortoise.contrib.pydantic import PydanticModel
 from tortoise.queryset import QuerySet
 
-from fastapi_mason.filters import BaseFilterBackend
 from fastapi_mason.pagination import DisabledPagination, Pagination
-from fastapi_mason.permissions import AllowAny, BasePermission, check_permissions
+from fastapi_mason.permissions import BasePermission, check_permissions
 from fastapi_mason.routes import register_action_route, sort_routes_by_specificity
+from fastapi_mason.state import BaseStateManager
 from fastapi_mason.types import ModelType
 from fastapi_mason.wrappers import PaginatedResponseWrapper, ResponseWrapper
 
@@ -29,30 +29,25 @@ class GenericViewSet(Generic[ModelType]):
     """
 
     # Model and schema configuration
-    model: Type[ModelType] = None
-    create_schema: PydanticModel = None
-    update_schema: PydanticModel = None
-    read_schema: PydanticModel = None
-    many_read_schema: PydanticModel = None
+    model: Type[ModelType]
+    create_schema: Optional[type[PydanticModel]] = None
+    update_schema: Optional[type[PydanticModel]] = None
+    read_schema: Optional[type[PydanticModel]] | None = None
+    many_read_schema: Optional[type[PydanticModel]] = None
 
     # Pagination and response wrappers
-    pagination: Pagination[ModelType] = DisabledPagination
-    list_wrapper: ResponseWrapper[ModelType] | PaginatedResponseWrapper[ModelType, Pagination[ModelType]] | None = None
-    single_wrapper: ResponseWrapper[ModelType] | None = None
+    pagination: type[Pagination[ModelType]] = DisabledPagination[ModelType]
+    list_wrapper: Optional[type[PaginatedResponseWrapper] | type[ResponseWrapper]] = None
+    single_wrapper: Optional[type[ResponseWrapper[ModelType]]] = None
 
     # Permission configuration
-    permission_classes: List[Type[BasePermission]] = [AllowAny]
-
-    # Filter configuration
-    filter_backends: List[Type[BaseFilterBackend]] = []
-    search_fields: List[str] = []
-    filterset_fields: List[str] = []
-    ordering_fields: List[str] = []
-    ordering: List[str] = []
-    range_fields: List[str] = []
+    permission_classes: List[Type[BasePermission]] = []
 
     # Router configuration
-    router: APIRouter = None
+    router: APIRouter
+
+    # State configuration
+    state_class: type[BaseStateManager[Any]] = BaseStateManager
 
     # Internal state
     __routes_added: bool = False
@@ -66,22 +61,33 @@ class GenericViewSet(Generic[ModelType]):
         self.setup_schemas()
         super().__init__(*args, **kwargs)
 
-        # Register custom actions
-        self.register_actions()
+        # Register routes
+        self._register_actions()
+        self._finalize_routes()
 
-        self.finalize_routes()
+    @property
+    def state(self) -> BaseStateManager[Any]:
+        """Get the current request state."""
+        return self.state_class.get_state()
 
-    def _get_lookup_field(self) -> str:
-        """Get the lookup field name for detail actions."""
-        return 'item_id'
+    @property
+    def request(self) -> Optional[Request]:
+        """Get the current request."""
+        return self.state.request
+
+    @property
+    def user(self) -> Any:
+        """Get the current user."""
+        return self.state.user
+
+    @property
+    def action(self) -> Optional[str]:
+        """Get the current action."""
+        return self.state.action
 
     def setup_schemas(self):
-        """
-        Setup default schemas if not provided.
+        """Setup default schemas if not provided."""
 
-        This method ensures that all required schemas are available,
-        using sensible defaults when specific schemas are not provided.
-        """
         # Setup create/update schemas with fallbacks
         self.create_schema = self.create_schema or self.update_schema
         self.update_schema = self.update_schema or self.create_schema
@@ -97,185 +103,82 @@ class GenericViewSet(Generic[ModelType]):
         if not self.model:
             raise ValueError(f'Model must be provided for {self.__class__.__name__}')
 
-    def check_permissions(self, request: Request, obj: Any = None) -> None:
-        """
-        Check permissions for the current request.
-
-        Args:
-            request: FastAPI request object
-            obj: Object being accessed (for object-level permissions)
-
-        Raises:
-            HTTPException: 403 if permission is denied
-        """
-        check_permissions(self.permission_classes, request, self, obj)
+    async def check_permissions(self, obj: Any = None) -> None:
+        """Check permissions for the current request."""
+        await check_permissions(self.get_permissions(), self.request, self, obj)
 
     def get_permissions(self) -> List[BasePermission]:
-        """
-        Get permission instances for this viewset.
-
-        Returns:
-            List of permission instances
-        """
+        """Get permission instances for this viewset."""
         return [permission() for permission in self.permission_classes]
 
-    async def filter_queryset(self, request: Request, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
-        """
-        Apply all configured filters to the queryset.
-
-        Args:
-            request: FastAPI request object
-            queryset: Base queryset to filter
-
-        Returns:
-            Filtered queryset
-        """
-        for filter_backend_class in self.filter_backends:
-            filter_backend = filter_backend_class()
-            queryset = await filter_backend.filter_queryset(request, queryset, self)
-
-        return queryset
-
     def get_queryset(self) -> QuerySet[ModelType]:
-        """
-        Get base queryset for the model.
-
-        Override this method to customize the base queryset
-        (e.g., add filtering, prefetching, etc.).
-
-        Returns:
-            Base queryset for the model
-        """
+        """Get base queryset for the model."""
         return self.model.all()
 
-    async def get_filtered_queryset(self, request: Request) -> QuerySet[ModelType]:
-        """
-        Get queryset with all filters applied.
-
-        Args:
-            request: FastAPI request object
-
-        Returns:
-            Filtered queryset
-        """
-        queryset = self.get_queryset()
-        return await self.filter_queryset(request, queryset)
-
-    async def get_object(self, item_id: int, request: Request = None) -> ModelType:
-        """
-        Get single object by ID with permission check.
-
-        Override this method to customize object retrieval
-        (e.g., add permission checks, custom lookup fields, etc.).
-
-        Args:
-            item_id: ID of the object to retrieve
-            request: FastAPI request object for permission checks
-
-        Returns:
-            Model instance
-
-        Raises:
-            HTTPException: 404 if object not found, 403 if permission denied
-        """
+    async def get_object(self, item_id: int) -> ModelType:
+        """Get single object by ID with permission check."""
         queryset = self.get_queryset()
         obj = await queryset.get_or_none(id=item_id)
         if not obj:
             raise HTTPException(status_code=404, detail='Not found')
 
         # Check object-level permissions if request is provided
-        if request:
-            self.check_permissions(request, obj)
-
+        await self.check_permissions(obj)
         return obj
 
-    async def perform_create(self, obj: ModelType, request: Request = None) -> ModelType:
-        """
-        Perform the actual object creation.
-
-        Override this method to add custom logic during creation
-        (e.g., setting additional fields, sending notifications, etc.).
-
-        Args:
-            obj: Object instance to save
-            request: FastAPI request object
-
-        Returns:
-            Saved object instance
-        """
+    async def perform_create(self, obj: ModelType) -> ModelType:
+        """Perform the actual object creation."""
         await obj.save()
         return obj
 
-    async def perform_update(self, obj: ModelType, request: Request = None) -> ModelType:
-        """
-        Perform the actual object update.
-
-        Override this method to add custom logic during update
-        (e.g., validation, logging, notifications, etc.).
-
-        Args:
-            obj: Object instance to save
-            request: FastAPI request object
-
-        Returns:
-            Updated object instance
-        """
+    async def perform_update(self, obj: ModelType) -> ModelType:
+        """Perform the actual object update."""
         await obj.save()
         return obj
 
-    async def perform_destroy(self, obj: ModelType, request: Request = None) -> None:
-        """
-        Perform the actual object deletion.
-
-        Override this method to add custom logic during deletion
-        (e.g., soft delete, cleanup, notifications, etc.).
-
-        Args:
-            obj: Object instance to delete
-            request: FastAPI request object
-        """
+    async def perform_destroy(self, obj: ModelType) -> None:
+        """Perform the actual object deletion."""
         await obj.delete()
 
     def get_list_response_model(self) -> Any:
         """Get response model for list endpoint."""
         if self.list_wrapper:
-            if issubclass(self.list_wrapper, ResponseWrapper):
-                return self.list_wrapper[self.many_read_schema]
-            elif issubclass(self.list_wrapper, PaginatedResponseWrapper):
-                return self.list_wrapper[self.many_read_schema, self.pagination]
+            if self.list_wrapper and issubclass(self.list_wrapper, ResponseWrapper):
+                return self.list_wrapper[self.many_read_schema]  # type: ignore
+            elif self.list_wrapper and issubclass(self.list_wrapper, PaginatedResponseWrapper):
+                return self.list_wrapper[self.many_read_schema, self.pagination]  # type: ignore
         return list[self.many_read_schema]
 
     def get_single_response_model(self) -> Any:
         """Get response model for single endpoint."""
         if self.single_wrapper:
-            if issubclass(self.single_wrapper, ResponseWrapper):
-                return self.single_wrapper[self.read_schema]
+            if self.single_wrapper and issubclass(self.single_wrapper, ResponseWrapper):
+                return self.single_wrapper[self.read_schema]  # type: ignore
         return self.read_schema
 
     async def get_paginated_response(
         self,
         queryset: QuerySet[ModelType],
         pagination: Pagination[ModelType],
-        wrapper: PaginatedResponseWrapper | None = None,
+        wrapper: Optional[type[PaginatedResponseWrapper]] = None,
     ):
         """Get paginated response for queryset."""
-        wrapper = wrapper or self.list_wrapper
+
+        _wrapper = wrapper or self.list_wrapper
         paginated_query = pagination.paginate(queryset)
+        if not self.many_read_schema:
+            raise ValueError(f'Many read schema must be provided for {self.__class__.__name__}')
+
         results = await self.many_read_schema.from_queryset(paginated_query)
         await pagination.fill_meta(queryset)
 
-        if wrapper:
-            return wrapper.wrap(data=results, pagination=pagination)
+        if _wrapper:
+            return _wrapper.wrap(data=results, pagination=pagination)
 
         return results
 
-    def register_actions(self):
-        """
-        Register custom actions defined with @action decorator.
-
-        This method scans the viewset class for methods marked with @action
-        and automatically registers them as routes.
-        """
+    def _register_actions(self) -> None:
+        """Register custom actions defined with @action decorator."""
         from .validation import validate_action_method
 
         # Get all methods from the class
@@ -290,13 +193,8 @@ class GenericViewSet(Generic[ModelType]):
                 # Register the action as a route
                 register_action_route(self, method)
 
-    def finalize_routes(self):
-        """
-        Finalize routes after all mixins have added their routes.
-
-        This method sorts routes by specificity and should be called
-        after all mixins have registered their routes.
-        """
+    def _finalize_routes(self) -> None:
+        """Finalize routes after all mixins have added their routes."""
         if not self.__routes_added:
-            self.router.routes = sort_routes_by_specificity(self.router.routes)
+            setattr(self.router, 'routes', sort_routes_by_specificity(self.router.routes))  # type: ignore
             self.__routes_added = True
