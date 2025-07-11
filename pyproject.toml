@@ -35,9 +35,9 @@ classifiers = [
 
 dependencies = [ "fastapi>=0.115.13", "tortoise-orm>=0.25.1" ]
 
-urls.Documentation = "https://github.com/bubaley/fastapi_mason#readme"
-urls.Homepage = "https://github.com/bubaley/fastapi_mason"
-urls.Repository = "https://github.com/bubaley/fastapi_mason.git"
+urls.Documentation = "https://github.com/bubaley/fastapi-mason#readme"
+urls.Homepage = "https://github.com/bubaley/fastapi-mason"
+urls.Repository = "https://github.com/bubaley/fastapi-mason.git"
 
 [dependency-groups]
 dev = [
