@@ -1,0 +1,89 @@
+site_name: FastAPI Mason
+site_description: Django REST Framework-inspired ViewSets and utilities for FastAPI applications
+site_url: https://fastapi-mason.readthedocs.io/
+repo_url: https://github.com/bubaley/fastapi-mason
+repo_name: bubaley/fastapi_mason
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+    - toc.integrate
+
+nav:
+  - Home: index.md
+  - Quick Start: quick-start.md
+  - ViewSets:
+      - Introduction: viewsets/index.md
+      - Actions: viewsets/actions.md
+      - Routes: viewsets/routes.md
+      - Generics & Mixins: viewsets/generics-mixins.md
+  - Schemas: schemas.md
+  - Pagination: pagination.md
+  - Permissions: permissions.md
+  - State Management: state.md
+  - Response Wrappers: wrappers.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/bubaley/fastapi-mason
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/fastapi-mason/
+
+extra_css:
+  - assets/extra.css 

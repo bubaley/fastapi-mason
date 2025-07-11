@@ -1,0 +1,84 @@
+name: Documentation Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+
+jobs:
+  lint-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install documentation dependencies
+        run: uv sync --group docs
+
+      - name: Check documentation can be built
+        run: uv run mkdocs build --clean --strict
+
+      - name: Validate markdown files
+        run: |
+          # Check for common markdown issues
+          find docs -name "*.md" -exec grep -l "]()" {} \; > /tmp/empty_links.txt || true
+          if [ -s /tmp/empty_links.txt ]; then
+            echo "Found empty links in:"
+            cat /tmp/empty_links.txt
+            exit 1
+          fi
+
+      - name: Check for broken internal links
+        run: |
+          # Simple check for common broken link patterns
+          uv run python -c "
+          import os
+          import re
+          import sys
+          
+          broken_links = []
+          
+          for root, dirs, files in os.walk('docs'):
+              for file in files:
+                  if file.endswith('.md'):
+                      filepath = os.path.join(root, file)
+                      with open(filepath, 'r', encoding='utf-8') as f:
+                          content = f.read()
+                          # Check for links to non-existent files
+                          md_links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+                          for link_text, link_url in md_links:
+                              if link_url.startswith('http'):
+                                  continue  # Skip external links
+                              if link_url.startswith('#'):
+                                  continue  # Skip anchors
+                              if link_url.endswith('.md'):
+                                  # Check if target file exists
+                                  target_path = os.path.join('docs', link_url)
+                                  if not os.path.exists(target_path):
+                                      broken_links.append(f'{filepath}: {link_url}')
+          
+          if broken_links:
+              print('Broken internal links found:')
+              for link in broken_links:
+                  print(f'  {link}')
+              sys.exit(1)
+          else:
+              print('No broken internal links found')
+          "
+
+      - name: Spell check
+        run: |
+          # Basic spell check for common technical terms
+          echo "Performing basic spell check..."
+          # This is a simple check - in production you might want to use a proper spell checker
+          find docs -name "*.md" -exec grep -i "teh\|adn\|nad\|hte\|tha\|documetnation\|implmentation" {} + | head -10 || true 

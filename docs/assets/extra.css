@@ -1,0 +1,256 @@
+/* Custom CSS for FastAPI Mason documentation */
+
+/* Mason-inspired color scheme */
+:root {
+  --mason-dark-green: #1b4332;
+  --mason-forest-green: #2d5a3d;
+  --mason-emerald: #40916c;
+  --mason-light-green: #40916c;
+  --mason-gold: #d4af37;
+}
+
+/* Header styling with mason colors */
+.md-header {
+  background-color: var(--mason-dark-green) !important;
+  background: linear-gradient(135deg, var(--mason-dark-green) 0%, var(--mason-forest-green) 100%) !important;
+}
+
+.md-header__title {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.md-header__button {
+  color: #ffffff !important;
+}
+
+/* Navigation styling */
+.md-nav__title {
+  color: var(--mason-dark-green);
+  font-weight: 600;
+}
+
+.md-nav__link--active {
+  color: var(--mason-emerald) !important;
+  font-weight: 600;
+}
+
+.md-nav__link:hover {
+  color: var(--mason-emerald);
+}
+
+/* Primary button styling */
+.md-button--primary {
+  background-color: var(--mason-emerald) !important;
+  border-color: var(--mason-emerald) !important;
+  color: #ffffff !important;
+}
+
+.md-button--primary:hover {
+  background-color: var(--mason-forest-green) !important;
+  border-color: var(--mason-forest-green) !important;
+}
+
+/* Search box styling */
+.md-search__form {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.md-search__input {
+  color: #ffffff;
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Improve code block styling */
+.highlight pre {
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+
+/* Add better spacing for admonitions */
+.admonition {
+    margin: 1.5rem 0;
+}
+
+/* Style API response examples */
+.api-response {
+    background: var(--md-code-bg-color);
+    border-left: 4px solid var(--md-primary-fg-color);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* Improve table styling */
+table {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+/* Style for parameter tables */
+.param-table th {
+    background: var(--md-primary-fg-color--light);
+    color: var(--md-primary-bg-color);
+}
+
+/* Custom styling for code examples */
+.code-example {
+    position: relative;
+    margin: 1rem 0;
+}
+
+.code-example .highlight {
+    margin: 0;
+}
+
+/* Improve navigation for long pages */
+.md-nav__item--nested > .md-nav__link {
+    font-weight: 500;
+}
+
+/* Better spacing for method signatures */
+.method-signature {
+    background: var(--md-code-bg-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-family: var(--md-code-font);
+    margin: 1rem 0;
+}
+
+/* Style for feature cards with mason theme */
+.feature-card {
+    border: 1px solid var(--mason-emerald);
+    border-radius: 0.375rem;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, rgba(64, 145, 108, 0.05) 0%, rgba(27, 67, 50, 0.05) 100%);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    border-color: var(--mason-forest-green);
+    box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15);
+    transform: translateY(-2px);
+}
+
+.feature-card h3 {
+    margin-top: 0;
+    color: var(--mason-dark-green);
+    font-weight: 700;
+}
+
+/* Mason-themed accents */
+.md-typeset h1 {
+    color: var(--mason-dark-green);
+    border-bottom: 2px solid var(--mason-emerald);
+    padding-bottom: 0.5rem;
+}
+
+.md-typeset h2 {
+    color: var(--mason-forest-green);
+}
+
+/* Code blocks with mason accent */
+.md-typeset .highlight {
+    border-left: 4px solid var(--mason-emerald);
+}
+
+/* Tables with mason styling */
+.md-typeset table:not([class]) th {
+    background-color: var(--mason-dark-green);
+    color: #ffffff;
+}
+
+.md-typeset table:not([class]) tr:hover {
+    background-color: rgba(64, 145, 108, 0.1);
+}
+
+/* Admonitions with mason colors */
+.md-typeset .admonition.tip {
+    border-color: var(--mason-emerald);
+}
+
+.md-typeset .admonition.tip > .admonition-title {
+    background-color: rgba(64, 145, 108, 0.1);
+    border-color: var(--mason-emerald);
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] {
+  --mason-text-light: #b8e6d0;
+}
+
+[data-md-color-scheme="slate"] .feature-card {
+    background: linear-gradient(135deg, rgba(64, 145, 108, 0.1) 0%, rgba(27, 67, 50, 0.1) 100%);
+    border-color: var(--mason-light-green);
+}
+
+[data-md-color-scheme="slate"] .feature-card h3 {
+    color: var(--mason-light-green);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1 {
+    color: var(--mason-light-green);
+    border-bottom-color: var(--mason-emerald);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2 {
+    color: var(--mason-text-light);
+}
+
+/* Mason-themed badges and highlights */
+.md-typeset code {
+    background-color: rgba(64, 145, 108, 0.1);
+    color: var(--mason-dark-green);
+    border: 1px solid rgba(64, 145, 108, 0.2);
+}
+
+[data-md-color-scheme="slate"] .md-typeset code {
+    background-color: rgba(64, 145, 108, 0.15);
+    color: var(--mason-light-green);
+}
+
+/* Special styling for the main title */
+.md-typeset h1:first-child {
+    background: linear-gradient(135deg, var(--mason-dark-green) 0%, var(--mason-emerald) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 2rem;
+    border: none;
+    padding: 0;
+}
+
+/* Mason tools decoration for headers */
+.md-typeset h1::before {
+    content: "🔨 ";
+    font-size: 0.8em;
+    margin-right: 0.5rem;
+}
+
+.md-typeset h2::before {
+    content: "⚒️ ";
+    font-size: 0.7em;
+    margin-right: 0.3rem;
+    opacity: 0.7;
+}
+
+/* Special styling for badges */
+.md-typeset img[alt*="badge" i] {
+    filter: hue-rotate(60deg) saturate(1.2);
+}
+
+/* Masonic square and compass inspired decorations */
+.md-nav__title::before {
+    content: "⚹ ";
+    color: var(--mason-emerald);
+    font-size: 0.9em;
+    margin-right: 0.5rem;
+} 

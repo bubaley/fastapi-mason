@@ -25,6 +25,26 @@ lint: ## run lint
 
 # ----------- HELPERS ----------- #
 
+# ----------- DOCUMENTATION COMMANDS ----------- #
+
+docs-install:  ## Install documentation dependencies
+	uv sync --group docs
+
+docs-serve:  ## Serve documentation locally
+	uv run mkdocs serve
+
+docs-build:  ## Build documentation
+	uv run mkdocs build --clean --strict
+
+docs-check:  ## Check documentation for issues
+	@echo "Checking documentation..."
+	uv run python scripts/test-docs.py
+
+docs-clean:  ## Clean documentation build artifacts
+	rm -rf site/
+
 help:
 	@echo "Usage: make <target>"
 	@awk 'BEGIN {FS = ":.*##"} /^[0-9a-zA-Z_-]+:.*?## / { printf "  * %-20s -%s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+

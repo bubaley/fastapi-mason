@@ -11,7 +11,7 @@ __title__ = 'fastapi_mason'
 
 __description__ = 'Django REST Framework-inspired ViewSets and utilities for FastAPI'
 
-__url__ = 'https://github.com/bubaley/fastapi_mason'
+__url__ = 'https://github.com/bubaley/fastapi-mason'
 
 __author__ = 'bubaley'
 
