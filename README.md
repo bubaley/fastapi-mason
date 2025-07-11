@@ -81,7 +81,6 @@ from fastapi_mason.wrappers import PaginatedResponseDataWrapper
 
 router = APIRouter(prefix='/companies', tags=['companies'])
 
-
 @viewset(router)
 class CompanyViewSet(ModelViewSet[Company]):
     model = Company
