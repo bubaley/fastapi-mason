@@ -57,7 +57,7 @@ class CompanyMeta(SchemaMeta):
 ### 3. Generate schemas
 
 ```python
-# app/domains/company/meta.py
+# app/domains/company/schemas.py
 from app.domains.company.meta import CompanyMeta
 from app.domains.company.models import Company
 from fastapi_mason.schemas import generate_schema, rebuild_schema
