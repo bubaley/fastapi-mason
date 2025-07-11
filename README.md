@@ -111,9 +111,9 @@ class CompanyViewSet(ModelViewSet[Company]):
 This automatically creates the following endpoints:
 - `GET /companies/` - List companies
 - `POST /companies/` - Create company
-- `GET /companies/{id}/` - Get specific company
-- `PUT /companies/{id}/` - Update company
-- `DELETE /companies/{id}/` - Delete company
+- `GET /companies/{item_id}/` - Get specific company
+- `PUT /companies/{item_id}/` - Update company
+- `DELETE /companies/{item_id}/` - Delete company
 - `GET /companies/stats/` - Custom action
 
 ## Core Components
