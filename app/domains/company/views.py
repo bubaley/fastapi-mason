@@ -1,22 +1,15 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter
 
 from app.core.viewsets import BaseModelViewSet
 from app.domains.company.models import Company
 from app.domains.company.schemas import CompanyCreateSchema, CompanySchema
-from fastapi_mason import decorators
+from fastapi_mason.decorators import action, viewset
 from fastapi_mason.permissions import IsAuthenticated
-from fastapi_mason.state import BaseStateManager
+
+router = APIRouter(prefix='/companies', tags=['companies'])
 
 
-async def auth_dependency(is_authenticated: bool = Query(default=False)):
-    if is_authenticated:
-        BaseStateManager.set_user({'id': 1, 'name': 'John Doe'})
-
-
-router = APIRouter(prefix='/companies', tags=['companies'], dependencies=[Depends(auth_dependency)])
-
-
-@decorators.viewset(router)
+@viewset(router)
 class CompanyViewSet(BaseModelViewSet[Company]):
     model = Company
     read_schema = CompanySchema
@@ -30,10 +23,10 @@ class CompanyViewSet(BaseModelViewSet[Company]):
         return Company.all()
 
     def get_permissions(self):
-        if self.action in ('example', 'list'):
+        if self.action in ('stats', 'list'):
             return []
         return [IsAuthenticated()]
 
-    @decorators.action(methods=['get'], detail=False)
-    async def example(self):
-        return '12312312'
+    @action(methods=['GET'], detail=False)
+    async def stats(self):
+        return 'Hello World!'

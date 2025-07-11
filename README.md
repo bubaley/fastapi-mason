@@ -24,61 +24,89 @@ pip install fastapi-mason
 
 ## Quick Start
 
-### 1. Define your model and schemas
+### 1. Define your model
+Use domain architecture
 
 ```python
+# app/domains/company/models.py
 from tortoise.models import Model
 from tortoise import fields
 from tortoise.contrib.pydantic import pydantic_model_creator
+from tortoise import fields
+from tortoise.models import Model
 
 class Company(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=100)
     description = fields.TextField()
-
-    class Meta:
-        table = "companies"
-
-# Generate schemas
-CompanySchema = pydantic_model_creator(Company, name="CompanySchema")
-CompanyCreateSchema = pydantic_model_creator(Company, name="CompanyCreateSchema", exclude_readonly=True)
 ```
-
-### 2. Create a ViewSet
+### 2. Write schema meta
 
 ```python
+# app/domains/company/meta.py
+from fastapi_mason.schemas import SchemaMeta
+
+class CompanyMeta(SchemaMeta):
+    include = (
+        'id',
+        'name',
+        'description',
+    )
+```
+
+### 3. Generate schemas
+
+```python
+# app/domains/company/meta.py
+from app.domains.company.meta import CompanyMeta
+from app.domains.company.models import Company
+from fastapi_mason.schemas import generate_schema, rebuild_schema
+
+CompanyReadSchema = generate_schema(Company, meta=CompanyMeta)
+CompanyCreateSchema = rebuild_schema(CompanyReadSchema, exclude_readonly=True)
+```
+
+### 4. Create a ViewSet
+```python
+# app/domains/company/views.py
 from fastapi import APIRouter
-from fastapi_mason import decorators
+
+from app.domains.company.models import Company
+from app.domains.company.schemas import CompanyCreateSchema, CompanySchema
+from fastapi_mason.decorators import action, viewset
+from fastapi_mason.pagination import PageNumberPagination
+from fastapi_mason.permissions import IsAuthenticatedOrReadOnly
 from fastapi_mason.viewsets import ModelViewSet
-from fastapi_mason.permissions import IsAuthenticated
+from fastapi_mason.wrappers import PaginatedResponseDataWrapper
 
-router = APIRouter(prefix="/companies", tags=["companies"])
+router = APIRouter(prefix='/companies', tags=['companies'])
 
-@decorators.viewset(router)
+
+@viewset(router)
 class CompanyViewSet(ModelViewSet[Company]):
     model = Company
     read_schema = CompanySchema
     create_schema = CompanyCreateSchema
 
-    # Optional: Add permissions
-    permission_classes = [IsAuthenticated]
+    pagination = PageNumberPagination  # Setup pagination
+    list_wrapper = PaginatedResponseDataWrapper  # Use wrapper for build pagination context
+    # single_wrapper = ResponseDataWrapper  # Single object wrapper
+
+    # permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
+        if not self.user:
+            return Company.filter(id__lte=3)
         return Company.all()
 
-    @decorators.action()
+    def get_permissions(self):
+        if self.action in ('stats', 'list'):
+            return []
+        return [IsAuthenticatedOrReadOnly()]
+
+    @action(methods=['GET'], detail=False)
     async def stats(self):
-        total = await Company.all().count()
-        return {"total_companies": total}
-```
-
-### 3. Include in your FastAPI app
-
-```python
-from fastapi import FastAPI
-
-app = FastAPI()
-app.include_router(router)
+        return 'Hello World!'
 ```
 
 This automatically creates the following endpoints:
