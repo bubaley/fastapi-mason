@@ -165,7 +165,7 @@ GET /companies/1/ (with single wrapper):
 
 GET /companies/stats/ (custom action):
 {
-  "data": 123
+  "total": 123
 }
 """
 ```
