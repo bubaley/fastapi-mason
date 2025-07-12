@@ -19,19 +19,13 @@ run: ## run runserver
 lint: ## run lint
 	pre-commit run --all-files
 
-# ----------- PRODUCTION COMMANDS ----------- #
-
-# waiting...
-
-# ----------- HELPERS ----------- #
-
 # ----------- DOCUMENTATION COMMANDS ----------- #
 
 docs-install:  ## Install documentation dependencies
 	uv sync --group docs
 
 docs-serve:  ## Serve documentation locally
-	uv run mkdocs serve
+	uv run mkdocs serve -a 0.0.0.0:9999
 
 docs-build:  ## Build documentation
 	uv run mkdocs build --clean --strict

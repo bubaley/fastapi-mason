@@ -17,15 +17,15 @@ router = APIRouter(prefix='/companies', tags=['companies'])
 
 @viewset(router)
 class CompanyViewSet(ModelViewSet[Company]):
-    model = Company                    # The model to work with
-    read_schema = CompanyReadSchema    # Schema for serialization
-    create_schema = CompanyCreateSchema # Schema for creation/updates
+    model = Company                     # The Tortoise ORM model to use for this ViewSet
+    read_schema = CompanyReadSchema     # Pydantic schema for serializing response data (read operations)
+    create_schema = CompanyCreateSchema # Pydantic schema for validating and deserializing input data (create/update)
     
     # Optional configurations
-    pagination = PageNumberPagination
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    list_wrapper = PaginatedResponseDataWrapper
-    single_wrapper = ResponseDataWrapper
+    pagination = PageNumberPagination   # Pagination class to use for list endpoints (default: DisabledPagination)
+    permission_classes = [IsAuthenticatedOrReadOnly] # List of permission classes for access control
+    list_wrapper = PaginatedResponseDataWrapper      # Wrapper class for formatting paginated list responses
+    single_wrapper = ResponseDataWrapper            # Wrapper class for formatting single object responses
 ```
 
 ## ViewSet Types
@@ -38,9 +38,9 @@ Provides full CRUD operations:
 
 - **List** (`GET /resources/`) - Get paginated list of resources
 - **Create** (`POST /resources/`) - Create new resource
-- **Retrieve** (`GET /resources/{id}/`) - Get specific resource
-- **Update** (`PUT /resources/{id}/`) - Update resource
-- **Destroy** (`DELETE /resources/{id}/`) - Delete resource
+- **Retrieve** (`GET /resources/{item_id}/`) - Get specific resource
+- **Update** (`PUT /resources/{item_id}/`) - Update resource
+- **Destroy** (`DELETE /resources/{item_id}/`) - Delete resource
 
 ```python
 from fastapi_mason.viewsets import ModelViewSet
@@ -57,7 +57,7 @@ class CompanyViewSet(ModelViewSet[Company]):
 Provides only read operations:
 
 - **List** (`GET /resources/`) - Get paginated list of resources  
-- **Retrieve** (`GET /resources/{id}/`) - Get specific resource
+- **Retrieve** (`GET /resources/{item_id}/`) - Get specific resource
 
 ```python
 from fastapi_mason.viewsets import ReadOnlyViewSet
@@ -74,20 +74,20 @@ class CompanyViewSet(ReadOnlyViewSet[Company]):
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `model` | `Type[Model]` | The Tortoise ORM model |
-| `read_schema` | `Type[PydanticModel]` | Schema for serializing data |
+| `model` | `Type[Model]` | The Tortoise ORM model class associated with this ViewSet. |
+| `read_schema` | `Type[PydanticModel]` | Pydantic schema used for serializing response data (read operations). |
 
 ### Optional Attributes
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `create_schema` | `Type[PydanticModel]` | `None` | Schema for creating resources |
-| `update_schema` | `Type[PydanticModel]` | `None` | Schema for updating resources |
-| `many_read_schema` | `Type[PydanticModel]` | `read_schema` | Schema for list responses |
-| `pagination` | `Type[Pagination]` | `DisabledPagination` | Pagination strategy |
-| `permission_classes` | `List[Type[BasePermission]]` | `[]` | Permission classes |
-| `list_wrapper` | `Type[ResponseWrapper]` | `None` | Response wrapper for lists |
-| `single_wrapper` | `Type[ResponseWrapper]` | `None` | Response wrapper for single items |
+| `create_schema` | `Type[PydanticModel]` | `None` | Pydantic schema for validating and deserializing input data when creating resources. |
+| `update_schema` | `Type[PydanticModel]` | `create_schema` | Pydantic schema for validating and deserializing input data when updating resources. Defaults to `create_schema` if not set. |
+| `many_read_schema` | `Type[PydanticModel]` | `read_schema` | Pydantic schema for serializing list responses. Defaults to `read_schema`. |
+| `pagination` | `Type[Pagination]` | `DisabledPagination` | Pagination strategy class for list endpoints. |
+| `permission_classes` | `List[Type[BasePermission]]` | `[]` | List of permission classes for access control. |
+| `list_wrapper` | `Type[ResponseWrapper]` | `None` | Wrapper class for formatting paginated list responses. |
+| `single_wrapper` | `Type[ResponseWrapper]` | `None` | Wrapper class for formatting single object responses. |
 
 ## Schema Configuration
 

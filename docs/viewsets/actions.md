@@ -1,5 +1,7 @@
 # Actions
 
+> **Important:** Always add custom routes to your ViewSets using the `@action` decorator. This ensures that you have access to the request context via `self`, and all lifecycle hooks and permission checks are properly handled. Defining routes outside of `@action` will break context and hook processing.
+
 Actions allow you to add custom endpoints to your ViewSets beyond the standard CRUD operations. They're perfect for implementing business logic that doesn't fit into the standard create, read, update, delete pattern.
 
 ## What are Actions?
@@ -17,7 +19,7 @@ class CompanyViewSet(ModelViewSet[Company]):
     read_schema = CompanyReadSchema
     create_schema = CompanyCreateSchema
     
-    @action(methods=['GET'], detail=False)
+    @action(methods=['GET'], detail=False, response_model=dict)
     async def stats(self):
         """Get company statistics"""
         total = await Company.all().count()
@@ -62,12 +64,12 @@ Controls whether the action operates on a single instance or the collection:
 
 ```python
 # Collection action: /companies/stats/
-@action(methods=['GET'], detail=False)
+@action(methods=['GET'], detail=False, response_model=int)
 async def stats(self):
     return await Company.all().count()
 
-# Instance action: /companies/{id}/activate/
-@action(methods=['POST'], detail=True)
+# Instance action: /companies/{item_id}/activate/
+@action(methods=['POST'], detail=True, response_model=dict)
 async def activate(self, item_id: int):
     company = await self.get_object(item_id)
     company.is_active = True
@@ -80,7 +82,7 @@ async def activate(self, item_id: int):
 Customize the URL path for the action:
 
 ```python
-@action(methods=['GET'], detail=False, path='company-statistics')
+@action(methods=['GET'], detail=False, path='company-statistics', response_model=dict)
 async def stats(self):
     return {"total": await Company.all().count()}
 
@@ -92,7 +94,7 @@ async def stats(self):
 Set a custom name for the action (used internally):
 
 ```python
-@action(methods=['GET'], detail=False, name='company_stats')
+@action(methods=['GET'], detail=False, name='company_stats', response_model=dict)
 async def statistics(self):
     return {"total": await Company.all().count()}
 ```

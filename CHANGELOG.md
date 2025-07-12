@@ -158,10 +158,10 @@
 - `GenericViewSet` - базовый класс с бизнес-логикой
 - Система миксинов для добавления routes:
   - `ListMixin` - GET /
-  - `RetrieveMixin` - GET /{id}
+  - `RetrieveMixin` - GET /{item_id}
   - `CreateMixin` - POST /
-  - `UpdateMixin` - PUT/PATCH /{id}
-  - `DestroyMixin` - DELETE /{id}
+  - `UpdateMixin` - PUT/PATCH /{item_id}
+  - `DestroyMixin` - DELETE /{item_id}
 
 #### ViewSets
 - `ModelViewSet` - полный CRUD

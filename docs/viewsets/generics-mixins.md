@@ -29,10 +29,10 @@ ModelViewSet / ReadOnlyViewSet
 Mixins only add specific routes to the GenericViewSet. They contain no business logic:
 
 - `ListMixin` - Adds `GET /resources/` endpoint
-- `RetrieveMixin` - Adds `GET /resources/{id}/` endpoint  
+- `RetrieveMixin` - Adds `GET /resources/{item_id}/` endpoint  
 - `CreateMixin` - Adds `POST /resources/` endpoint
-- `UpdateMixin` - Adds `PUT /resources/{id}/` endpoint
-- `DestroyMixin` - Adds `DELETE /resources/{id}/` endpoint
+- `UpdateMixin` - Adds `PUT /resources/{item_id}/` endpoint
+- `DestroyMixin` - Adds `DELETE /resources/{item_id}/` endpoint
 
 ## The GenericViewSet
 
@@ -377,7 +377,7 @@ Routes are sorted to prevent conflicts:
 ```python
 def sort_routes_by_specificity(routes):
     # Static paths (e.g., /companies/stats/) come first
-    # Dynamic paths (e.g., /companies/{id}/) come last
+    # Dynamic paths (e.g., /companies/{item_id}/) come last
     # This prevents conflicts between custom actions and CRUD operations
 ```
 

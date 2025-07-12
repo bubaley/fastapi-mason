@@ -16,7 +16,7 @@ class SchemaMeta:
 
 @dataclass
 class ConfigSchemaMeta(PydanticMetaData):
-    pass
+    validators: Optional[dict[str, Any]] = None
 
 
 def generate_schema_meta(
@@ -75,13 +75,13 @@ def generate_schema(
     schema_meta = generate_schema_meta(meta) if meta else SchemaMeta
     if not name:
         name = f'{cls.__name__}{"Read" if not exclude_readonly else "Write"}Schema'
-
     schema = pydantic_model_creator(
         cls,
         meta_override=_generate_meta_override(meta=schema_meta, config=config),
         optional=schema_meta.optional,
         name=name,
         exclude_readonly=exclude_readonly,
+        validators=config.validators if config else None,
     )
     setattr(
         schema,

@@ -7,49 +7,54 @@ repo_name: bubaley/fastapi_mason
 theme:
   name: material
   language: en
+  logo: assets/logo.png
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: green
-      accent: teal
+      primary: white
+      accent: white
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: green
-      accent: teal
+      primary: black
+      accent: black   
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.expand
-    - navigation.top
-    - search.highlight
-    - search.share
-    - search.suggest
-    - content.code.copy
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
     - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.prune
+    - navigation.tabs
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.suggest
     - toc.follow
-    - toc.integrate
 
 nav:
   - Home: index.md
-  - Quick Start: quick-start.md
-  - ViewSets:
-      - Introduction: viewsets/index.md
-      - Actions: viewsets/actions.md
-      - Routes: viewsets/routes.md
-      - Generics & Mixins: viewsets/generics-mixins.md
-  - Schemas: schemas.md
-  - Pagination: pagination.md
-  - Permissions: permissions.md
-  - State Management: state.md
-  - Response Wrappers: wrappers.md
+  - Get Started:
+    - Quick Start: quick-start.md
+    - ViewSets:
+        - Introduction: viewsets/index.md
+        - Actions: viewsets/actions.md
+        - Routes: viewsets/routes.md
+        - Generics & Mixins: viewsets/generics-mixins.md
+    - Schemas: schemas.md
+    - Pagination: pagination.md
+    - Permissions: permissions.md
+    - State Management: state.md
+    - Response Wrappers: wrappers.md
 
 plugins:
   - search
