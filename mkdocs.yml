@@ -21,7 +21,7 @@ theme:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
-      accent: black   
+      accent: black
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -47,12 +47,12 @@ nav:
     - Quick Start: quick-start.md
     - ViewSets:
         - Introduction: viewsets/index.md
+        - Lifecycle Hooks: viewsets/lifecycle-hooks.md
         - Actions: viewsets/actions.md
-        - Routes: viewsets/routes.md
         - Generics & Mixins: viewsets/generics-mixins.md
-    - Schemas: schemas.md
-    - Pagination: pagination.md
+    - Meta & Schemas: schemas.md
     - Permissions: permissions.md
+    - Pagination: pagination.md
     - State Management: state.md
     - Response Wrappers: wrappers.md
 
@@ -91,4 +91,4 @@ extra:
       link: https://pypi.org/project/fastapi-mason/
 
 extra_css:
-  - assets/extra.css 
+  - assets/extra.css

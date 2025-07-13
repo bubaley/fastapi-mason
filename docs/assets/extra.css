@@ -41,7 +41,7 @@
   --content-padding: 1rem;
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
-  
+
 }
 
 .md-nav__link--active, .md-tabs__item--active {
@@ -95,7 +95,7 @@ code {
   border-radius: var(--border-radius-small) !important;
 }
 
-li code, td code {
+li code, td code, p > code {
   border: 1px solid var(--border-color) !important;
 }
 

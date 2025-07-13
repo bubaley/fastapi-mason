@@ -28,6 +28,7 @@ your_project/
 │   ├── core/                 # Shared utilities and base classes
 │   │   ├── models.py         # BaseModel and common fields
 │   │   ├── database.py       # Database configuration
+│   │   ├── viewsets.py       # The main viewsets for the entire application
 │   │   └── settings.py       # Application settings
 │   ├── domains/              # Business domains
 │   │   └── project/
@@ -68,7 +69,22 @@ class BaseModel(Model):
 BASE_FIELDS = ('id', 'created_at', 'updated_at')
 ```
 
-### 2. Define Your Models
+### 2. Basic viewset for easy reuse
+
+```python title="app/core/viewsets.py"
+from fastapi_mason.pagination import PageNumberPagination
+from fastapi_mason.viewsets import ModelViewSet
+from fastapi_mason.types import ModelType
+from fastapi_mason.wrappers import PaginatedResponseDataWrapper, ResponseDataWrapper
+
+
+class BaseViewSet(ModelViewSet[ModelType]):
+    pagination = PageNumberPagination
+    list_wrapper = PaginatedResponseDataWrapper
+    single_wrapper = ResponseDataWrapper
+```
+
+### 3. Define Your Models
 
 Create your Tortoise ORM models with ForeignKey relationships:
 
@@ -79,17 +95,17 @@ from app.core.models import BaseModel
 class Project(BaseModel):
     name = fields.CharField(max_length=255)
     description = fields.TextField(null=True)
-    status = fields.CharField(max_length=50, default='active')
+    active = fields.BooleanField(default=True)
     # Reverse relation to tasks will be available as 'tasks' automaticly
 
 class Task(BaseModel):
     name = fields.CharField(max_length=255)
     description = fields.TextField(null=True)
     completed = fields.BooleanField(default=False)
-    project = fields.ForeignKeyField('models.Project', related_name='tasks')
+    project: fields.ForeignKeyRelation[Project] = fields.ForeignKeyField("models.Project", related_name="tasks")
 ```
 
-### 3. Create Schema Meta Classes
+### 4. Create Schema Meta Classes
 
 Define which fields to include in your API schemas and how to handle relationships:
 
@@ -97,51 +113,63 @@ Define which fields to include in your API schemas and how to handle relationshi
 from app.core.models import BASE_FIELDS
 from fastapi_mason.schemas import SchemaMeta, generate_schema_meta
 
+
 class ProjectMeta(SchemaMeta):
     include = (
         *BASE_FIELDS,
-        'name',
-        'description',
-        'status',
+        "name",
+        "description",
     )
+
 
 class TaskMeta(SchemaMeta):
     include = (
         *BASE_FIELDS,
-        'name',
-        'description',
-        'completed',
-        'project_id',  # Include foreign key ID
+        "name",
+        "description",
+        "completed",
+        "project_id",  # Include foreign key ID
     )
+
 
 # Create meta for nested schemas with relationships
 def get_project_with_tasks_meta():
     """Project schema with embedded tasks"""
     return generate_schema_meta(
         ProjectMeta,
-        ('tasks', get_task_with_project_meta()),
+        ("tasks", get_task_with_project_meta()),
     )
+
 
 def get_task_with_project_meta():
     """Task schema with embedded project data"""
-    return generate_schema_meta(TaskMeta, ('project', ProjectMeta))
+    return generate_schema_meta(TaskMeta, ("project", ProjectMeta))
 ```
 
-### 4. Generate Schemas
+### 5. Generate Schemas
 
 Use FastAPI Mason's schema generation to create Pydantic models for related data:
 
 ```python title="app/domains/project/schemas.py"
 from typing import TYPE_CHECKING
+from pydantic import BaseModel
+from tortoise import Tortoise
 from tortoise.contrib.pydantic import PydanticModel
 
 from app.domains.project.meta import (
     ProjectMeta,
     get_project_with_tasks_meta,
-    get_task_with_project_meta
+    get_task_with_project_meta,
 )
 from app.domains.project.models import Project, Task
 from fastapi_mason.schemas import ConfigSchemaMeta, generate_schema, rebuild_schema
+
+"""
+https://tortoise.github.io/examples/pydantic.html?h=init_models#early-model-init
+Set up models in advance here or place them in database.py (example)
+https://github.com/bubaley/fastapi-mason/blob/main/app/core/database.py
+"""
+Tortoise.init_models(["app.domains.project.models"], "models")
 
 # Simple project schema
 ProjectReadSchema = generate_schema(Project, meta=ProjectMeta)
@@ -156,87 +184,104 @@ ProjectDetailSchema = generate_schema(
 # Create schemas (exclude readonly fields)
 ProjectCreateSchema = rebuild_schema(ProjectReadSchema, exclude_readonly=True)
 
+
+class ProjectStatsSchema(BaseModel):
+    project_id: int
+    completed: int = 0
+    incomplete: int = 0
+
+
 # Task schemas
 TaskReadSchema = generate_schema(Task, meta=get_task_with_project_meta())
 TaskCreateSchema = rebuild_schema(TaskReadSchema, exclude_readonly=True)
 
 # Type checking support
 if TYPE_CHECKING:
-    ProjectReadSchema = type('ProjectReadSchema', (Project, PydanticModel), {})
-    ProjectCreateSchema = type('ProjectCreateSchema', (Project, PydanticModel), {})
-    ProjectDetailSchema = type('ProjectDetailSchema', (Project, PydanticModel), {})
-    TaskReadSchema = type('TaskReadSchema', (Task, PydanticModel), {})
-    TaskCreateSchema = type('TaskCreateSchema', (Task, PydanticModel), {})
+    ProjectReadSchema = type("ProjectReadSchema", (Project, PydanticModel), {})
+    ProjectCreateSchema = type("ProjectCreateSchema", (Project, PydanticModel), {})
+    ProjectDetailSchema = type("ProjectDetailSchema", (Project, PydanticModel), {})
+    TaskReadSchema = type("TaskReadSchema", (Task, PydanticModel), {})
+    TaskCreateSchema = type("TaskCreateSchema", (Task, PydanticModel), {})
 ```
 
-### 5. Create Your ViewSets
+### 6. Create Your ViewSets
 
 Now create ViewSets for both models with relationship handling:
 
 ```python title="app/domains/project/views.py"
-from fastapi import APIRouter
-from fastapi_mason.decorators import viewset, action
-from fastapi_mason.viewsets import ModelViewSet
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi_mason.decorators import action, viewset
 from fastapi_mason.pagination import PageNumberPagination
-from fastapi_mason.wrappers import PaginatedResponseDataWrapper, ResponseDataWrapper
+from fastapi_mason.wrappers import PaginatedResponseDataWrapper
 
+from app.core.viewsets import BaseViewSet
 from app.domains.project.models import Project, Task
 from app.domains.project.schemas import (
-    ProjectReadSchema,
     ProjectDetailSchema,
+    ProjectReadSchema,
     ProjectCreateSchema,
+    ProjectStatsSchema,
+    TaskCreateSchema,
     TaskReadSchema,
-    TaskCreateSchema
 )
 
-router = APIRouter(prefix='/projects', tags=['projects'])
+projects_router = APIRouter(prefix="/projects", tags=["projects"])
+tasks_router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-@viewset(router)
-class ProjectViewSet(ModelViewSet[Project]):
+
+@viewset(projects_router)
+class ProjectViewSet(BaseViewSet[Project]):
     model = Project
-    read_schema = ProjectReadSchema
+    read_schema = ProjectDetailSchema
+    many_read_schema = ProjectReadSchema
     create_schema = ProjectCreateSchema
 
-    pagination = PageNumberPagination
-    list_wrapper = PaginatedResponseDataWrapper
-    single_wrapper = ResponseDataWrapper
-
     def get_queryset(self):
-        return Project.all()
+        """Override get_queryset method"""
+        return Project.filter(active=True)
 
-    def get_detail_schema(self):
-        # Use detailed schema for single item retrieval
-        return ProjectDetailSchema
+    async def perform_destroy(self, obj: Project):
+        """Override perform_destroy method"""
+        obj.active = False
+        await obj.save()
+        return obj
 
-    async def get_object(self, item_id: int):
-        # For detail view, also include tasks
-        return await Project.get(id=item_id).prefetch_related('tasks')
-
-    @action(methods=['GET'], detail=True)
-    async def tasks(self, item_id: int):
-        """Get all tasks for a project"""
+    @action(methods=["GET"], detail=True, response_model=ProjectStatsSchema)
+    async def stats(self, item_id: int):
+        """Get stats for a project"""
         project = await self.get_object(item_id)
-        tasks = await Task.filter(project=project).select_related('project')
-        return [TaskReadSchema.model_validate(task) for task in tasks]
+        tasks = Task.filter(project=project)
+        return ProjectStatsSchema(
+            project_id=project.id,
+            completed=await tasks.filter(completed=True).count(),
+            incomplete=await tasks.filter(completed=False).count(),
+        )
 
-    @action(methods=['POST'], detail=True)
-    async def add_task(self, item_id: int, task_data: TaskCreateSchema):
-        """Add a new task to the project"""
-        project = await self.get_object(item_id)
-        task = await Task.create(project=project, **task_data.model_dump())
-        await task.fetch_related('project')
-        return TaskReadSchema.model_validate(task)
 
-    @action(methods=['POST'], detail=True)
-    async def complete(self, item_id: int):
-        """Mark project as completed"""
-        project = await self.get_object(item_id)
-        project.status = 'completed'
-        await project.save()
-        return {"message": "Project marked as completed"}
+@viewset(tasks_router)
+class TaskViewSet(BaseViewSet[Task]):
+    model = Task
+    read_schema = TaskReadSchema
+    create_schema = TaskCreateSchema
+
+    @action(methods=["GET"], response_model=PaginatedResponseDataWrapper[TaskReadSchema, PageNumberPagination])
+    async def list(
+        self,
+        pagination: PageNumberPagination = Depends(PageNumberPagination.from_query),
+        project_id: bool = Query(...),
+    ):
+        """Override list method"""
+        queryset = self.get_queryset().filter(project_id=project_id)
+        return await self.get_paginated_response(queryset=queryset, pagination=pagination)
+
+    async def before_save(self, obj: Task):
+      """Before save hook"""
+        await obj.fetch_related("project")
+        if obj.project.active is False:
+            raise HTTPException(status_code=400, detail="Project is not active")
 ```
 
-### 6. Setup FastAPI Application
+### 7. Setup FastAPI Application
 
 Wire everything together in your main application:
 
@@ -244,7 +289,7 @@ Wire everything together in your main application:
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
 
-from app.domains.project.views import router as projects_router
+from app.domains.project.views import router as projects_router, tasks_router
 
 app = FastAPI(
     title="Project Management API",
@@ -252,7 +297,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Register database
+# Register database here or in database.py
 register_tortoise(
     app,
     db_url="sqlite://db.sqlite3",
@@ -263,9 +308,10 @@ register_tortoise(
 
 # Include ViewSet router
 app.include_router(projects_router)
+app.include_router(tasks_router)
 ```
 
-### 7. Run Your API
+### 8. Run Your API
 
 Start the development server:
 
@@ -275,7 +321,7 @@ uvicorn app.main:app --reload
 
 ## 🎉 What You Get
 
-Your API is now running at `http://localhost:8000` with these endpoints:
+Check Your API `http://localhost:8000/docs` with these endpoints:
 
 ### Project Endpoints
 
@@ -286,9 +332,9 @@ Your API is now running at `http://localhost:8000` with these endpoints:
 | `GET`    | `/projects/{item_id}/`          | Get project with tasks    |
 | `PUT`    | `/projects/{item_id}/`          | Update project            |
 | `DELETE` | `/projects/{item_id}/`          | Delete project            |
-| `GET`    | `/projects/{item_id}/tasks/`    | Get all tasks for project |
-| `POST`   | `/projects/{item_id}/add_task/` | Add task to project       |
-| `POST`   | `/projects/{item_id}/complete/` | Mark project as completed |
+| `GET`    | `/projects/{item_id}/stats/`    | Get stats for project |
+
+And tasks endpoints.
 
 ## 📋 API Response Examples
 
@@ -301,7 +347,6 @@ Your API is now running at `http://localhost:8000` with these endpoints:
       "id": 1,
       "name": "Website Redesign",
       "description": "Complete overhaul of company website",
-      "status": "active",
       "created_at": "2024-01-15T11:00:00Z",
       "updated_at": "2024-01-15T11:00:00Z"
     }
@@ -323,19 +368,16 @@ Your API is now running at `http://localhost:8000` with these endpoints:
     "id": 1,
     "name": "Website Redesign",
     "description": "Complete overhaul of company website",
-    "status": "active",
     "tasks": [
       {
         "id": 1,
         "name": "Design mockups",
         "description": "Create UI/UX mockups for the new website",
         "completed": false,
-        "project_id": 1,
         "project": {
           "id": 1,
           "name": "Website Redesign",
           "description": "Complete overhaul of company website",
-          "status": "active"
         },
         "created_at": "2024-01-15T12:00:00Z",
         "updated_at": "2024-01-15T12:00:00Z"
@@ -347,91 +389,41 @@ Your API is now running at `http://localhost:8000` with these endpoints:
 }
 ```
 
-### Create Project
-
-```json title="POST /projects/"
-// Request body:
-{
-  "name": "Mobile App",
-  "description": "iOS and Android mobile application",
-  "status": "active"
-}
-
-// Response:
-{
-  "data": {
-    "id": 2,
-    "name": "Mobile App",
-    "description": "iOS and Android mobile application",
-    "status": "active",
-    "created_at": "2024-01-15T13:00:00Z",
-    "updated_at": "2024-01-15T13:00:00Z"
-  }
-}
-```
-
-### Add Task to Project
-
-```json title="POST /projects/1/add_task/"
-// Request body:
-{
-  "name": "Setup development environment",
-  "description": "Configure development tools and dependencies",
-  "completed": false
-}
-
-// Response:
-{
-  "id": 2,
-  "name": "Setup development environment",
-  "description": "Configure development tools and dependencies",
-  "completed": false,
-  "project_id": 1,
-  "project": {
-    "id": 1,
-    "name": "Website Redesign",
-    "description": "Complete overhaul of company website",
-    "status": "active"
-  },
-  "created_at": "2024-01-15T14:00:00Z",
-  "updated_at": "2024-01-15T14:00:00Z"
-}
-```
-
 ## 🔧 Key Features Demonstrated
 
 ### 1. **Relationship Handling**
 
-- ForeignKey relationships automatically included in schemas
-- Nested object serialization with `generate_schema_meta`
-- Circular reference handling with `ConfigSchemaMeta(allow_cycles=True)`
+- ForeignKey and related objects are automatically included in schemas using `generate_schema_meta`.
+- Nested object serialization (e.g., project with tasks, task with project).
+- Circular reference support with `ConfigSchemaMeta(allow_cycles=True)`.
 
 ### 2. **Flexible Schema Generation**
 
-- Different schemas for list vs detail views
-- Automatic exclusion of readonly fields in create schemas
-- Customizable field inclusion through meta classes
+- Different schemas for list and detail views.
+- Customizable field inclusion through meta classes (`SchemaMeta`, `generate_schema_meta`).
+- Generation of nested schemas for related models.
 
-### 3. **Optimized Queries**
+### 3. **Base and Custom ViewSets**
 
-- `select_related()` for ForeignKey relations
-- `prefetch_related()` for reverse relations
-- Efficient database queries out of the box
+- Rapid creation of CRUD endpoints using `ModelViewSet` and `BaseViewSet`.
+- Overriding methods (`get_queryset`, `perform_destroy`, `before_save`) for business logic.
+- Built-in pagination and response wrappers (`PageNumberPagination`, `PaginatedResponseDataWrapper`).
 
-### 4. **Custom Actions**
+### 4. **Custom Actions and Routes**
 
-- Easy addition of custom endpoints with `@action` decorator
-- Automatic routing and documentation generation
+- Easy addition of custom endpoints with the `@action` decorator.
+- Automatic routing and OpenAPI documentation for custom and overiding methods (e.g., `stats` for project, `list` with project_id filter for tasks).
 
 ## 👋 Adding Authentication
 
 Want to add authentication? It's easy with state management:
 
 ```python title="app/core/auth.py"
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi_mason.state import BaseStateManager
 from typing import Optional
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi_mason.state import BaseStateManager
+
 
 class OptionalHTTPBearer(HTTPBearer):
     async def __call__(self, request: Request) -> Optional[HTTPAuthorizationCredentials]:
@@ -443,9 +435,8 @@ class OptionalHTTPBearer(HTTPBearer):
             return None
         return credentials
 
-security = OptionalHTTPBearer()
 
-async def get_current_user(token: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+async def get_current_user(token: Optional[HTTPAuthorizationCredentials] = Depends(OptionalHTTPBearer())):
     if token and token.credentials == "token":  # Your logic
         user = {"id": 1, "username": "john"}
         BaseStateManager.set_user(user)
@@ -458,12 +449,7 @@ Then add it as app dependency or or to the required routers:
 ```python title="app/main.py"
 from app.core.auth import get_current_user
 
-app = FastAPI(
-    title="Project Management API",
-    description="A project management API built with FastAPI Mason",
-    version="1.0.0",
-    dependencies=[Depends(get_current_user)]
-)
+app = FastAPI(dependencies=[Depends(get_current_user)])
 ```
 
 ## 🛡️ Adding Permissions
@@ -491,7 +477,7 @@ class ProjectViewSet(ModelViewSet[Project]):
 Congratulations! You've built a complete REST API with related models using FastAPI Mason. Here's what to explore next:
 
 - **[ViewSets](viewsets/index.md)** - Learn about advanced ViewSet features
-- **[Schemas](schemas.md)** - Master schema generation and relationships
+- **[Meta & Schemas](schemas.md)** - Master schema generation and relationships
 - **[Permissions](permissions.md)** - Implement complex authorization rules
 - **[Pagination](pagination.md)** - Explore different pagination strategies
 - **[State Management](state.md)** - Share data across your application
@@ -500,13 +486,7 @@ Congratulations! You've built a complete REST API with related models using Fast
 ## 💡 Tips
 
 !!! tip "Domains Architecture"
-Keep your domains focused and cohesive. Each domain should represent a clear business concept with its own models, schemas, and views.
-
-!!! tip "Relationship Performance"
-Always use `select_related()` for ForeignKey fields and `prefetch_related()` for reverse relations to avoid N+1 query problems.
+    Keep your domains focused and cohesive. Each domain should represent a clear business concept with its own models, meta, schemas, and views.
 
 !!! tip "Schema Flexibility"
-Use different meta classes for different use cases - simple schemas for lists, detailed schemas for single items, and minimal schemas for creation.
-
-!!! tip "Documentation"
-FastAPI automatically generates OpenAPI documentation. Visit `/docs` to see your interactive API documentation with all relationship data!
+    Use different meta classes for different use cases - simple schemas for lists, detailed schemas for single items, and minimal schemas for creation.

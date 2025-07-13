@@ -53,7 +53,7 @@ jobs:
       - name: Build documentation
         run: |
           uv run mkdocs build --clean --strict
-          
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -79,4 +79,4 @@ jobs:
     needs: build
     steps:
       - name: Documentation build successful
-        run: echo "Documentation built successfully for PR" 
+        run: echo "Documentation built successfully for PR"

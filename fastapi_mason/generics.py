@@ -168,7 +168,7 @@ class GenericViewSet(Generic[ModelType]):
             raise ValueError(f'Many read schema must be provided for {self.__class__.__name__}')
 
         results = await self.many_read_schema.from_queryset(paginated_query)
-        await pagination.fill_meta(queryset)
+        await pagination.fill_meta(queryset=queryset, data=results)
 
         if _wrapper:
             return _wrapper.wrap(data=results, pagination=pagination)

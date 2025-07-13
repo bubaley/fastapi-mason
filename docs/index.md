@@ -129,7 +129,7 @@ uvicorn main:app --reload
 """
 This creates the following endpoints:
 - GET /companies/ - List companies with pagination
-- POST /companies/ - Create new company  
+- POST /companies/ - Create new company
 - GET /companies/{item_id}/ - Get specific company
 - PUT /companies/{item_id}/ - Update company
 - DELETE /companies/{item_id}/ - Delete company
@@ -160,7 +160,7 @@ GET /companies/1/ (with single wrapper):
 {
   "data": {
     "id": 1,
-    "name": "Acme Corp", 
+    "name": "Acme Corp",
     "full_name": "Acme Corporation Ltd.",
     "created_at": "2023-01-01T10:00:00Z",
     "updated_at": "2023-01-01T10:00:00Z"
@@ -169,7 +169,7 @@ GET /companies/1/ (with single wrapper):
 
 GET /companies/stats/ (custom action):
 {
-  "data": 123
+  "total": 123
 }
 """
 ```
@@ -222,7 +222,7 @@ Ready to build amazing APIs? Start with our [Quick Start guide](quick-start.md) 
 Want to dive deeper? Explore our comprehensive guides:
 
 - [ViewSets](viewsets/index.md) - Learn about the core ViewSet concepts
-- [Schemas](schemas.md) - Master schema generation and meta classes
+- [Meta & Schemas](schemas.md) - Master schema generation and meta classes
 - [Permissions](permissions.md) - Secure your APIs with permission classes
 - [Pagination](pagination.md) - Implement efficient data pagination
 - [State Management](state.md) - Manage request-scoped state

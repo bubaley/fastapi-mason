@@ -40,5 +40,3 @@ docs-clean:  ## Clean documentation build artifacts
 help:
 	@echo "Usage: make <target>"
 	@awk 'BEGIN {FS = ":.*##"} /^[0-9a-zA-Z_-]+:.*?## / { printf "  * %-20s -%s\n", $$1, $$2 }' $(MAKEFILE_LIST)
-
-

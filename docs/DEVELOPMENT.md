@@ -59,4 +59,4 @@ When adding new documentation:
 2. Use clear, descriptive headings
 3. Include practical examples
 4. Test code examples before committing
-5. Update navigation in `mkdocs.yml` if needed 
+5. Update navigation in `mkdocs.yml` if needed

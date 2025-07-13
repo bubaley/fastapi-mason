@@ -45,7 +45,7 @@ def check_internal_links() -> bool:
     broken_links = []
 
     for md_file in docs_dir.rglob('*.md'):
-        with open(md_file, 'r', encoding='utf-8') as f:
+        with open(md_file, encoding='utf-8') as f:
             content = f.read()
 
         # Find markdown links
@@ -85,7 +85,7 @@ def check_empty_links() -> bool:
     empty_links = []
 
     for md_file in docs_dir.rglob('*.md'):
-        with open(md_file, 'r', encoding='utf-8') as f:
+        with open(md_file, encoding='utf-8') as f:
             content = f.read()
 
         # Find empty links [text]()
@@ -123,7 +123,7 @@ def check_spelling() -> bool:
     found_typos = []
 
     for md_file in docs_dir.rglob('*.md'):
-        with open(md_file, 'r', encoding='utf-8') as f:
+        with open(md_file, encoding='utf-8') as f:
             content = f.read().lower()
 
         for typo in typos:
@@ -150,7 +150,7 @@ def check_code_examples() -> bool:
     issues = []
 
     for md_file in docs_dir.rglob('*.md'):
-        with open(md_file, 'r', encoding='utf-8') as f:
+        with open(md_file, encoding='utf-8') as f:
             lines = f.readlines()
 
         in_code_block = False

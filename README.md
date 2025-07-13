@@ -125,7 +125,7 @@ uvicorn main:app --reload
 """
 This creates the following endpoints:
 - GET /companies/ - List companies with pagination
-- POST /companies/ - Create new company  
+- POST /companies/ - Create new company
 - GET /companies/{item_id}/ - Get specific company
 - PUT /companies/{item_id}/ - Update company
 - DELETE /companies/{item_id}/ - Delete company
@@ -156,7 +156,7 @@ GET /companies/1/ (with single wrapper):
 {
   "data": {
     "id": 1,
-    "name": "Acme Corp", 
+    "name": "Acme Corp",
     "full_name": "Acme Corporation Ltd.",
     "created_at": "2023-01-01T10:00:00Z",
     "updated_at": "2023-01-01T10:00:00Z"

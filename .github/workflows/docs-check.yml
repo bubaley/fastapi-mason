@@ -45,9 +45,9 @@ jobs:
           import os
           import re
           import sys
-          
+
           broken_links = []
-          
+
           for root, dirs, files in os.walk('docs'):
               for file in files:
                   if file.endswith('.md'):
@@ -66,7 +66,7 @@ jobs:
                                   target_path = os.path.join('docs', link_url)
                                   if not os.path.exists(target_path):
                                       broken_links.append(f'{filepath}: {link_url}')
-          
+
           if broken_links:
               print('Broken internal links found:')
               for link in broken_links:
@@ -81,4 +81,4 @@ jobs:
           # Basic spell check for common technical terms
           echo "Performing basic spell check..."
           # This is a simple check - in production you might want to use a proper spell checker
-          find docs -name "*.md" -exec grep -i "teh\|adn\|nad\|hte\|tha\|documetnation\|implmentation" {} + | head -10 || true 
+          find docs -name "*.md" -exec grep -i "teh\|adn\|nad\|hte\|tha\|documetnation\|implmentation" {} + | head -10 || true
