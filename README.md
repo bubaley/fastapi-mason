@@ -121,7 +121,7 @@ uvicorn main:app --reload
 
  Try API Endpoints:
 
-```json
+```python
 """
 This creates the following endpoints:
 - GET /companies/ - List companies with pagination
@@ -165,7 +165,7 @@ GET /companies/1/ (with single wrapper):
 
 GET /companies/stats/ (custom action):
 {
-  "data": 123
+  "total": 123
 }
 """
 ```
