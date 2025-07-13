@@ -48,7 +48,7 @@ async def list(
     queryset = self.get_queryset().filter(project_id=project_id)
     return await self.get_paginated_response(queryset=queryset, pagination=pagination)
 
-@action(methods=["POST"], detail=True)
+@action(methods=["PUT"], detail=True)
 async def update(self, item_id: int, data: TaskCreateSchema):
     """Override update method"""
     task = await self.get_object(item_id)
