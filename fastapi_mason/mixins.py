@@ -5,18 +5,20 @@ These mixins only add specific routes to the GenericViewSet.
 They do not contain any business logic - all logic is in GenericViewSet.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic
 
 from fastapi import Depends
+from pydantic import BaseModel
 
 from fastapi_mason.pagination import DisabledPagination
 from fastapi_mason.routes import BASE_ROUTE_PATHS, add_wrapped_route
+from fastapi_mason.types import ModelType
 
 if TYPE_CHECKING:
     from fastapi_mason.generics import GenericViewSet
 
 
-class ListMixin:
+class ListMixin(Generic[ModelType]):
     """Mixin that adds list endpoint to GenericViewSet."""
 
     def __init__(self, *args, **kwargs):
@@ -49,7 +51,7 @@ class ListMixin:
         )
 
 
-class RetrieveMixin:
+class RetrieveMixin(Generic[ModelType]):
     """Mixin that adds retrieve endpoint to GenericViewSet."""
 
     def __init__(self, *args, **kwargs):
@@ -76,7 +78,7 @@ class RetrieveMixin:
         )
 
 
-class CreateMixin:
+class CreateMixin(Generic[ModelType]):
     """Mixin that adds create endpoint to GenericViewSet."""
 
     def __init__(self, *args, **kwargs):
@@ -85,9 +87,14 @@ class CreateMixin:
 
     def add_create_route(self: 'GenericViewSet'):  # type: ignore
         async def create_endpoint(data: self.create_schema):  # type: ignore
-            obj_data = data.model_dump(exclude_unset=True)
-            obj = self.model(**obj_data)
-            obj = await self.perform_create(obj)
+            data = await self.validate_data(data)
+            if isinstance(data, BaseModel):
+                data = data.model_dump(exclude_unset=True)
+
+            obj = self.model(**data)
+            await self.before_save(obj)
+            obj = await self.perform_create(obj)  # type: ignore
+            await self.after_save(obj)
             result = await self.read_schema.from_tortoise_orm(obj)  # type: ignore
 
             if self.single_wrapper:
@@ -105,8 +112,13 @@ class CreateMixin:
             status_code=201,
         )
 
+    async def perform_create(self, obj: ModelType) -> ModelType:
+        """Perform the actual object creation."""
+        await obj.save()
+        return obj
 
-class UpdateMixin:
+
+class UpdateMixin(Generic[ModelType]):
     """Mixin that adds update endpoint to GenericViewSet."""
 
     def __init__(self, *args, **kwargs):
@@ -117,10 +129,16 @@ class UpdateMixin:
         async def update_endpoint(item_id: int, data: self.update_schema):  # type: ignore
             obj = await self.get_object(item_id)
 
-            for key, value in data.model_dump(exclude_unset=True).items():
+            data = await self.validate_data(data)
+            if isinstance(data, BaseModel):
+                data = data.model_dump(exclude_unset=True)
+
+            for key, value in data.items():
                 setattr(obj, key, value)
 
-            obj = await self.perform_update(obj)
+            await self.before_save(obj)
+            obj = await self.perform_update(obj)  # type: ignore
+            await self.after_save(obj)
             result = await self.read_schema.from_tortoise_orm(obj)  # type: ignore
 
             if self.single_wrapper:
@@ -137,8 +155,13 @@ class UpdateMixin:
             response_model=self.get_single_response_model(),
         )
 
+    async def perform_update(self, obj: ModelType) -> ModelType:
+        """Perform the actual object update."""
+        await obj.save()
+        return obj
 
-class DestroyMixin:
+
+class DestroyMixin(Generic[ModelType]):
     """Mixin that adds destroy endpoint to GenericViewSet."""
 
     def __init__(self, *args, **kwargs):
@@ -148,7 +171,7 @@ class DestroyMixin:
     def add_destroy_route(self: 'GenericViewSet'):  # type: ignore
         async def destroy_endpoint(item_id: int):
             obj = await self.get_object(item_id)
-            await self.perform_destroy(obj)
+            await self.perform_destroy(obj)  # type: ignore
 
         add_wrapped_route(
             viewset=self,
@@ -158,3 +181,7 @@ class DestroyMixin:
             methods=['DELETE'],
             status_code=204,
         )
+
+    async def perform_destroy(self, obj: ModelType) -> None:
+        """Perform the actual object deletion."""
+        await obj.delete()

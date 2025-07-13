@@ -126,19 +126,17 @@ class GenericViewSet(Generic[ModelType]):
         await self.check_permissions(obj)
         return obj
 
-    async def perform_create(self, obj: ModelType) -> ModelType:
-        """Perform the actual object creation."""
-        await obj.save()
-        return obj
+    async def validate_data(self, data: PydanticModel) -> PydanticModel | dict:
+        """Validate data."""
+        return data
 
-    async def perform_update(self, obj: ModelType) -> ModelType:
-        """Perform the actual object update."""
-        await obj.save()
-        return obj
+    async def before_save(self, obj: ModelType) -> None:
+        """Perform before save actions."""
+        pass
 
-    async def perform_destroy(self, obj: ModelType) -> None:
-        """Perform the actual object deletion."""
-        await obj.delete()
+    async def after_save(self, obj: ModelType):
+        """Perform after save actions."""
+        pass
 
     def get_list_response_model(self) -> Any:
         """Get response model for list endpoint."""

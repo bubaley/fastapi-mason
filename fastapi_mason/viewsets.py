@@ -18,11 +18,11 @@ from fastapi_mason.types import ModelType
 
 class ModelViewSet(
     GenericViewSet[ModelType],
-    ListMixin,
-    RetrieveMixin,
-    CreateMixin,
-    UpdateMixin,
-    DestroyMixin,
+    ListMixin[ModelType],
+    RetrieveMixin[ModelType],
+    CreateMixin[ModelType],
+    UpdateMixin[ModelType],
+    DestroyMixin[ModelType],
 ):
     """Base viewset providing full CRUD operations."""
 
@@ -31,8 +31,8 @@ class ModelViewSet(
 
 class ReadOnlyViewSet(
     GenericViewSet[ModelType],
-    ListMixin,
-    RetrieveMixin,
+    ListMixin[ModelType],
+    RetrieveMixin[ModelType],
 ):
     """Read-only viewset providing list and retrieve operations."""
 
