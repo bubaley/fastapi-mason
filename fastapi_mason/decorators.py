@@ -8,14 +8,13 @@ from typing import Any, Callable, Optional, Type
 
 from fastapi import APIRouter
 
-from fastapi_mason.types import ModelType
-from fastapi_mason.viewsets import ModelViewSet
+from fastapi_mason.viewsets import GenericViewSet
 
 
 def viewset(router: APIRouter):
     """Decorator for automatic viewset registration with FastAPI router."""
 
-    def decorator(cls: Type[ModelViewSet[ModelType]]) -> Type[ModelViewSet[ModelType]]:
+    def decorator(cls: Type[GenericViewSet]):
         """Apply viewset decorator to class."""
         # Store router on the class
         cls.router = router
