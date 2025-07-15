@@ -1,6 +1,12 @@
-# Lookups
+---
+title: FastAPI Object Lookups — Flexible URL Parameter Handling with FastAPI Mason
+description: Manage object retrieval in FastAPI Mason using flexible lookup strategies. Support int, string, UUID, and custom lookups for precise REST API routing and parameter validation.
+keywords: FastAPI lookups, URL parameters, object retrieval, FastAPI Mason lookups, REST API routing, parameter validation, custom lookup methods, Python API development
+---
 
-FastAPI Mason provides a flexible lookup system that allows you to control how objects are retrieved from URL parameters. This is especially useful for supporting different lookup strategies (by int, str, UUID, etc.) and for building customizable routes.
+# FastAPI Object Lookups: Flexible URL Parameter-Based Retrieval
+
+FastAPI Mason offers a flexible object lookup system that controls how items are retrieved from URL parameters. Supporting multiple strategies including int, string, UUID, and custom methods, it enables customizable and precise REST API routing.
 
 ## Overview
 

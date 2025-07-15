@@ -1,6 +1,13 @@
-# Lifecycle Hooks
+---
+title: FastAPI ViewSet Lifecycle Hooks — Customize API Object Processing with FastAPI Mason
+description: Use FastAPI Mason ViewSet lifecycle hooks to customize validation, before/after save actions, and custom create/update operations. Enhance your API with fine-grained control.
+keywords: FastAPI lifecycle hooks, ViewSet hooks, Django REST Framework hooks, API customization, FastAPI Mason advanced features, object validation, create update hooks, API processing
+---
 
-ViewSets support lifecycle hooks that allow you to customize object processing at different stages:
+# FastAPI ViewSet Lifecycle Hooks: Advanced API Object Processing
+
+FastAPI Mason ViewSets support lifecycle hooks that let you customize object processing at key stages. Control validation, before and after save operations, and implement custom create or update logic to tailor your API behavior precisely.
+
 
 | Method             | When it is called                                    |
 |--------------------|-----------------------------------------------------|

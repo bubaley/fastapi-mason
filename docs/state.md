@@ -1,6 +1,12 @@
-# State Management
+---
+title: FastAPI Request State Management — Context Handling with FastAPI Mason
+description: Manage request-scoped state efficiently in FastAPI Mason. Use isolated, concurrency-safe context handling to share data across middleware, ViewSets, and components throughout the request lifecycle.
+keywords: FastAPI state management, request context, FastAPI middleware state, Python contextvars, FastAPI Mason, request lifecycle management, concurrent-safe state, request-scoped context, Python API development, FastAPI architecture
+---
 
-FastAPI Mason provides a request-scoped state management system that allows you to share data across middleware, ViewSets, and other components within a single request lifecycle. This is essential for passing user information, request context, and other data through your application.
+# Request State Management in FastAPI Mason
+
+FastAPI Mason offers a request-scoped state management system that lets you safely share data across middleware, ViewSets, and other components during a single request lifecycle. Built with concurrency safety in mind, this system is ideal for passing user data, request context, and other runtime information throughout your FastAPI application.
 
 ## Overview
 

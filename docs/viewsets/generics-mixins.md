@@ -1,6 +1,12 @@
-# Generics & Mixins
+---
+title: FastAPI Generics & Mixins — Flexible ViewSet Architecture in FastAPI Mason
+description: Learn how FastAPI Mason uses generics and mixins to build flexible, reusable ViewSet components. Customize and extend your APIs with modular architecture inspired by REST API patterns.
+keywords: FastAPI generics, ViewSet mixins, FastAPI Mason architecture, API design patterns, Python mixins, REST API architecture, reusable components, modular API design
+---
 
-Understanding the architecture behind FastAPI Mason's ViewSets will help you create more powerful and customized APIs. The system is built on a flexible combination of generic classes and mixins that provide specific functionality.
+# Generics & Mixins: Flexible ViewSet Architecture in FastAPI Mason
+
+FastAPI Mason's architecture leverages generics and mixins to create flexible, reusable ViewSet components. This modular design enables you to build powerful and customizable APIs by composing specific functionalities tailored to your application’s needs.
 
 ## Architecture Overview
 

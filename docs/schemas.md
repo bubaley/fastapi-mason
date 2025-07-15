@@ -1,6 +1,12 @@
-# Schemas
+---
+title: FastAPI Schema Generation — Build Secure APIs with Tortoise ORM and Mason
+description: Generate flexible, secure API schemas in FastAPI Mason using Tortoise ORM models and meta class configurations. Control your API fields easily and streamline Python API development.
+keywords: FastAPI schemas, Tortoise ORM, API schema generation, Pydantic models, FastAPI serialization, API field control, Python backend development, REST API schemas, schema customization FastAPI, FastAPI Mason
+---
 
-FastAPI Mason provides a powerful schema generation system from your Tortoise ORM models. The system uses meta classes to give you fine-grained control over which fields are included in your API schemas.
+# Schemas & Meta: FastAPI Mason Schema Generation with Tortoise ORM
+
+FastAPI Mason offers a powerful schema generation system based on your Tortoise ORM models. Using meta class configurations, you can precisely control which fields appear in your API schemas, making it easy to build secure, flexible, and well-structured REST APIs.
 
 FastAPI Mason extends the functionality of `pydantic_model_creator` from Tortoise ORM, providing more flexible and secure schema generation for FastAPI.
 

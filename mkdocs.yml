@@ -1,13 +1,16 @@
 site_name: FastAPI Mason
-site_description: Django REST Framework-inspired ViewSets and utilities for FastAPI applications
-site_url: https://fastapi-mason.readthedocs.io/
+site_description: Build REST APIs fast with Django REST Framework patterns in FastAPI. ViewSets, permissions, pagination, and automatic CRUD operations with Tortoise ORM.
+site_url: https://bubaley.github.io/fastapi-mason/
 repo_url: https://github.com/bubaley/fastapi-mason
-repo_name: bubaley/fastapi_mason
+repo_name: bubaley/fastapi-mason
+site_author: FastAPI Mason Team
+edit_uri: edit/main/docs/
 
 theme:
   name: material
   language: en
   logo: assets/logo.png
+  favicon: assets/logo.png
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -39,6 +42,7 @@ theme:
     - navigation.tracking
     - search.highlight
     - search.suggest
+    - search.share
     - toc.follow
 
 nav:
@@ -51,20 +55,25 @@ nav:
         - Actions: viewsets/actions.md
         - Lookups: viewsets/lookups.md
         - Generics & Mixins: viewsets/generics-mixins.md
-    - Meta & Schemas: schemas.md
+    - Schemas & Meta: schemas.md
     - Permissions: permissions.md
     - Pagination: pagination.md
     - State Management: state.md
     - Response Wrappers: wrappers.md
 
 plugins:
-  - search
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+  - meta
   - mkdocstrings:
       handlers:
         python:
           paths: [.]
           options:
             docstring_style: google
+            show_source: false
+            show_root_heading: true
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -72,7 +81,9 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: 
+        - docs
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
@@ -81,18 +92,40 @@ markdown_extensions:
   - pymdownx.details
   - attr_list
   - md_in_html
+  - meta
   - toc:
       permalink: true
+      title: Page Contents
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/bubaley/fastapi-mason
+      name: GitHub Repository
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/fastapi-mason/
-
+      name: PyPI Package
+    - icon: fontawesome/solid/book
+      link: https://bubaley.github.io/fastapi-mason/
+      name: Documentation
+  analytics:
+    provider: google
+    property: G-W6DSW1BTC1
+  generator: false
+  
+# SEO optimization
 extra_css:
   - assets/extra.css
 
 extra_javascript:
   - assets/metrics.js
+  - assets/seo.js
+
+# Additional SEO settings
+strict: true
+use_directory_urls: true
+
+# Copyright and additional info
+copyright: >
+  Copyright &copy; 2025 FastAPI Mason Team -
+  <a href="https://github.com/bubaley/fastapi-mason" target="_blank">GitHub</a>

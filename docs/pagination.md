@@ -1,4 +1,10 @@
-# Pagination
+---
+title: FastAPI Pagination — Efficient Data Management with FastAPI Mason
+description: Improve your FastAPI application's performance with Mason's advanced API pagination. Supports multiple strategies like limit-offset and cursor-based pagination for scalable REST APIs.
+keywords: FastAPI pagination, API pagination, Django REST Framework pagination, REST API performance, limit-offset pagination, cursor pagination, FastAPI Mason, scalable APIs, data pagination, Python REST API
+---
+
+# API Pagination: Efficient Data Management with FastAPI Mason
 
 FastAPI Mason provides multiple pagination strategies to efficiently handle large datasets. Each strategy is designed for different use cases and offers various trade-offs between performance, consistency, and user experience.
 

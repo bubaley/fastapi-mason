@@ -1,6 +1,12 @@
-# Permissions
+---
+title: FastAPI Permissions — Secure API Access Control with FastAPI Mason
+description: Strengthen your FastAPI application's security using Mason's flexible permission system. Supports view-level and object-level permissions inspired by Django REST Framework for precise API access control.
+keywords: FastAPI permissions, API security, access control, Django REST Framework permissions, FastAPI authentication, object-level permissions, view-level permissions, Python API security, REST API protection, FastAPI Mason
+---
 
-FastAPI Mason provides a robust permission system that allows you to control access to your API endpoints. The system is inspired by Django REST Framework and provides both view-level and object-level permissions.
+# API Permissions: FastAPI Mason Security System
+
+FastAPI Mason provides a robust permission system that allows you to control access to your API endpoints. The system is inspired by Django REST Framework and provides both view-level and object-level permissions, ensuring your FastAPI applications are secure and properly protected.
 
 ## Overview
 

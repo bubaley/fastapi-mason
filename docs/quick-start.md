@@ -1,6 +1,12 @@
-# Quick Start
+---
+title: FastAPI Mason Tutorial — Quick Start Guide to Building REST APIs
+description: Learn how to build REST APIs quickly with FastAPI Mason. Follow this step-by-step tutorial to use ViewSets, permissions, and automatic CRUD operations.
+keywords: FastAPI tutorial, FastAPI Mason tutorial, REST API guide, Python REST API tutorial, Django REST Framework patterns, CRUD API FastAPI, ViewSets FastAPI, Python backend development, API development tutorial
+---
 
-Get up and running with FastAPI Mason in just a few minutes! This guide will walk you through installation and building your first API with proper project structure.
+# FastAPI Mason Quick Start: Build REST APIs in Minutes
+
+Get started with FastAPI Mason and build your first REST API fast! This step-by-step guide shows how to install FastAPI Mason and structure your project using familiar patterns like ViewSets, permissions, and automatic CRUD operations.
 
 ## 📦 Installation
 
@@ -18,7 +24,7 @@ uv add fastapi tortoise-orm
 
 ## 🏗️ Recommended Project Structure
 
-Before diving into code, **recommend** using a **domains architecture** for your FastAPI projects. This approach organizes your code by business domains rather than technical layers, making it more maintainable and scalable.
+Before diving into code, we **recommend using a domains architecture** for your FastAPI projects. This approach organizes your code by business domains rather than technical layers, making it more maintainable and scalable.
 
 Here's the recommended structure:
 

@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Allow specific search engine bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Disallow non-essential directories
+User-agent: *
+Disallow: /search/
+Disallow: /*?*
+
+# Sitemap location
+Sitemap: https://bubaley.github.io/fastapi-mason/sitemap.xml
+
+# Crawl-delay for being respectful to servers
+Crawl-delay: 1 

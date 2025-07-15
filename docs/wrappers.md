@@ -1,6 +1,12 @@
-# Response Wrappers
+---
+title: FastAPI Response Wrappers — Standardize API Responses with FastAPI Mason
+description: Use FastAPI Mason response wrappers to create consistent, standardized API response formats. Easily include pagination, metadata, and uniform structures across your REST API.
+keywords: FastAPI response wrappers, API response formatting, FastAPI Mason, REST API consistency, response structure standardization, API metadata, pagination response, Python API best practices
+---
 
-Response wrappers in FastAPI Mason provide a consistent way to format API responses. They allow you to wrap your data in a standard structure, add metadata, handle pagination information, and create uniform response formats across your entire API.
+# FastAPI Response Wrappers: Standardize Your API Responses
+
+FastAPI Mason’s response wrappers help you standardize API response formats by wrapping data in a consistent structure. They support adding metadata, pagination details, and ensure uniform responses throughout your REST API for better client integration and maintainability.
 
 ## Overview
 

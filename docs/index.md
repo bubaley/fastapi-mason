@@ -1,43 +1,41 @@
+---
+title: FastAPI Mason — Build REST APIs with Django Patterns in FastAPI
+description: FastAPI Mason brings Django REST Framework patterns to FastAPI. Build robust APIs with ViewSets, automatic CRUD, permissions, and pagination using Tortoise ORM.
+keywords: FastAPI, Django REST Framework, ViewSets, REST API, Tortoise ORM, Python Backend, API Development, CRUD operations, FastAPI Mason
+---
+
 <p align="center">
-  <img align="center" src="assets/logo.png" alt="logo" width="200"/>
-  <h2 align="center">FastAPI Mason</h2>
+  <img align="center" src="assets/logo.png" alt="FastAPI Mason - Django REST Framework for FastAPI" width="200"/>
+  <h1 align="center">FastAPI Mason</h1>
 </p>
-<p align="center" markdown=1>
-  <i>Django REST Framework-inspired ViewSets and utilities for FastAPI applications with Tortoise ORM</i>
+<p align="center">
+  <i>Build REST APIs with Django REST Framework patterns in FastAPI</i>
 </p>
-<p align="center" markdown=1>
+<p align="center">
 <a href="https://pypi.org/project/fastapi-mason/">
-  <img src="https://img.shields.io/pypi/v/fastapi-mason?color=%2334D058&label=pypi%20package" alt="PyPi Version"/>
+  <img src="https://img.shields.io/pypi/v/fastapi-mason?color=%2334D058&label=version" alt="Version"/>
 </a>
 <a href="https://pypi.org/project/fastapi-mason/">
-  <img src="https://img.shields.io/pypi/pyversions/fastapi-mason.svg?color=%2334D058" alt="Supported Python Versions"/>
+  <img src="https://img.shields.io/pypi/pyversions/fastapi-mason.svg?color=%2334D058" alt="Python versions"/>
 </a>
 <a href="https://github.com/bubaley/fastapi-mason/blob/main/LICENSE">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"/>
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
 </a>
 </p>
 
-<hr>
+---
 
-**Django REST Framework-inspired ViewSets and utilities for FastAPI applications with Tortoise ORM.**
+**Transform your FastAPI development with familiar Django REST Framework patterns.**
 
-FastAPI Mason brings the beloved patterns and conventions from Django REST Framework to FastAPI, providing a structured and efficient way to build REST APIs. With familiar concepts like ViewSets, permissions, pagination, and serialization, you can rapidly develop robust API applications.
+If you've worked with Django REST Framework, you'll love FastAPI Mason. It brings the same powerful patterns—ViewSets, automatic CRUD, permissions, and pagination—to FastAPI's high-performance foundation.
 
-Just like skilled masons who craft solid foundations with precision and expertise, FastAPI Mason helps you build reliable, well-structured APIs with time-tested patterns and best practices.
-
-<hr>
-<p><b>Documentation</b>: <a class="link" href="https://bubaley.github.io/fastapi-mason">bubaley.github.io/fastapi-mason</a></p>
-<hr>
-
-<div style="margin: 2rem 0;">
+<div align="center" style="margin: 2rem 0;">
   <a href="quick-start/" class="get-started-btn">
-    Get Started
+    🚀 Get Started in 5 Minutes
   </a>
 </div>
 
 ## 📦 Installation
-
-Install FastAPI Mason using UV:
 
 ```bash
 uv add fastapi-mason
@@ -92,7 +90,6 @@ CompanyCreateSchema = rebuild_schema(CompanySchema, exclude_readonly=True)
 
 # Views
 router = APIRouter(prefix='/companies', tags=['companies'])
-
 
 @viewset(router)
 class CompanyViewSet(ModelViewSet[Company]):
@@ -173,6 +170,7 @@ GET /companies/stats/ (custom action):
 }
 """
 ```
+See the [Quick Start guide](quick-start.md) for a complete working example
 
 ## ✨ Key Features
 
@@ -188,7 +186,7 @@ Built-in permission system with customizable access control. Protect your endpoi
 
 <div class="feature-card">
 <h3>📄 Pagination</h3>
-Multiple pagination strategies out of the box: Limit/Offset and Page Number. You can easily customize or override pagination classes to suit your needs.
+Multiple pagination strategies out of the box: Limit/Offset and Page Number. Easily customizable for your needs.
 </div>
 
 <div class="feature-card">
@@ -208,7 +206,7 @@ Request-scoped state management for sharing data across middleware and view comp
 
 ## 🎯 Philosophy
 
-FastAPI Mason is designed with these principles in mind:
+FastAPI Mason is designed with these principles:
 
 - **Familiar**: If you know Django REST Framework, you already know FastAPI Mason
 - **Flexible**: Customize every aspect while maintaining sensible defaults
@@ -222,7 +220,7 @@ Ready to build amazing APIs? Start with our [Quick Start guide](quick-start.md) 
 Want to dive deeper? Explore our comprehensive guides:
 
 - [ViewSets](viewsets/index.md) - Learn about the core ViewSet concepts
-- [Meta & Schemas](schemas.md) - Master schema generation and meta classes
+- [Schemas & Meta](schemas.md) - Master schema generation and meta classes
 - [Permissions](permissions.md) - Secure your APIs with permission classes
 - [Pagination](pagination.md) - Implement efficient data pagination
 - [State Management](state.md) - Manage request-scoped state

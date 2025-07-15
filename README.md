@@ -5,7 +5,7 @@
   <h2 align="center">FastAPI Mason</h2>
 </p>
 <p align="center" markdown=1>
-  <i>Django REST Framework-inspired ViewSets and utilities for FastAPI applications with Tortoise ORM</i>
+  <i>Build REST APIs with Django REST Framework patterns in FastAPI</i>
 </p>
 <p align="center" markdown=1>
 <a href="https://pypi.org/project/fastapi-mason/">
@@ -21,7 +21,7 @@
 
 <hr>
 
-**Django REST Framework-inspired ViewSets and utilities for FastAPI applications with Tortoise ORM.**
+**Transform your FastAPI development with familiar Django REST Framework patterns.**
 
 FastAPI Mason brings the beloved patterns and conventions from Django REST Framework to FastAPI, providing a structured and efficient way to build REST APIs. With familiar concepts like ViewSets, permissions, pagination, and serialization, you can rapidly develop robust API applications.
 
@@ -218,7 +218,7 @@ Ready to build amazing APIs? Start with our [Quick Start guide](https://bubaley.
 Want to dive deeper? Explore our comprehensive guides:
 
 - [ViewSets](https://bubaley.github.io/fastapi-mason/viewsets/) - Learn about the core ViewSet concepts
-- [Schemas](https://bubaley.github.io/fastapi-mason/schemas/) - Master schema generation and meta classes
+- [Schemas & Meta](https://bubaley.github.io/fastapi-mason/schemas/) - Master schema generation and meta classes
 - [Permissions](https://bubaley.github.io/fastapi-mason/permissions/) - Secure your APIs with permission classes
 - [Pagination](https://bubaley.github.io/fastapi-mason/pagination/) - Implement efficient data pagination
 - [State Management](https://bubaley.github.io/fastapi-mason/state/) - Manage request-scoped state
