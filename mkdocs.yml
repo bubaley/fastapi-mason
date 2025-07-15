@@ -92,3 +92,6 @@ extra:
 
 extra_css:
   - assets/extra.css
+
+extra_javascript:
+  - assets/metrics.js
