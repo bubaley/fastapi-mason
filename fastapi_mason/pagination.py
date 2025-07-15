@@ -20,7 +20,7 @@ class Pagination(ABC, BaseModel, Generic[ModelType]):
 
     @classmethod
     @abstractmethod
-    def from_query(cls, **kwargs) -> 'Pagination':
+    def build(cls, **kwargs) -> 'Pagination':
         """Create pagination instance from query parameters."""
         pass
 
@@ -41,7 +41,7 @@ class DisabledPagination(Pagination[ModelType]):
     """Pagination class that disables pagination."""
 
     @classmethod
-    def from_query(cls) -> 'DisabledPagination':
+    def build(cls) -> 'DisabledPagination':
         return cls()
 
     def paginate(self, queryset: QuerySet[ModelType]) -> QuerySet[ModelType]:
@@ -56,7 +56,7 @@ class LimitOffsetPagination(Pagination[ModelType]):
     total: int = 0
 
     @classmethod
-    def from_query(
+    def build(
         cls,
         offset: int = Query(0, ge=0, description='Number of records to skip'),
         limit: int = Query(10, ge=1, le=100, description='Number of records to return'),
@@ -79,7 +79,7 @@ class PageNumberPagination(Pagination[ModelType]):
     pages: int = 0
 
     @classmethod
-    def from_query(
+    def build(
         cls,
         page: int = Query(1, ge=1, description='Page number'),
         size: int = Query(10, ge=1, le=100, description='Number of records per page'),

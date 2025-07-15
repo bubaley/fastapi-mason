@@ -56,7 +56,7 @@ from tortoise.models import Model
 
 from fastapi_mason.decorators import action, viewset
 from fastapi_mason.pagination import PageNumberPagination
-from fastapi_mason.schemas import SchemaMeta, generate_schema, rebuild_schema
+from fastapi_mason.schemas import SchemaMeta, build_schema, rebuild_schema
 from fastapi_mason.viewsets import ModelViewSet
 from fastapi_mason.wrappers import PaginatedResponseDataWrapper, ResponseDataWrapper
 
@@ -87,7 +87,7 @@ class CompanyMeta(SchemaMeta):
 
 
 # Schemas
-CompanySchema = generate_schema(Company, meta=CompanyMeta)
+CompanySchema = build_schema(Company, meta=CompanyMeta)
 CompanyCreateSchema = rebuild_schema(CompanySchema, exclude_readonly=True)
 
 # Views

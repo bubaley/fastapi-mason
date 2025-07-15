@@ -46,4 +46,4 @@ Call order for create/update:
 3. `perform_create` / `perform_update`
 4. `after_save`
 
-For deletion, only `perform_destroy` is called. 
+For deletion, only `perform_destroy` is called.

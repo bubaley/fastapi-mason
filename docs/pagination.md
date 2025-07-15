@@ -157,12 +157,12 @@ class CompanyViewSet(ModelViewSet[Company]):
     pagination = PageNumberPagination
 
     @action(methods=["GET"], response_model=List[ProjectReadSchema])
-    async def paginated_list(self, pagination: PageNumberPagination = Depends(PageNumberPagination.from_query)):
+    async def paginated_list(self, pagination: PageNumberPagination = Depends(PageNumberPagination.build)):
         queryset = self.get_queryset()
         return await self.get_paginated_response(queryset=queryset, pagination=pagination)
 
     @action(methods=["GET"], response_model=PaginatedResponseDataWrapper[ProjectReadSchema, PageNumberPagination[Company]])
-    async def wrapped_paginated_list(self, pagination: PageNumberPagination = Depends(PageNumberPagination.from_query)):
+    async def wrapped_paginated_list(self, pagination: PageNumberPagination = Depends(PageNumberPagination.build)):
         queryset = self.get_queryset()
         return await self.get_paginated_response(queryset=queryset, pagination=pagination, wrapper=PaginatedResponseDataWrapper)
 ```
@@ -182,7 +182,7 @@ class CustomPageNumberPagination(PageNumberPagination[ModelType]):
     """Custom pagination implementation with flexible page size and offset."""
 
     @classmethod
-    def from_query(
+    def build(
         cls,
         page: int = Query(1, ge=1, description="Page number"),
         size: int = Query(20, ge=1, le=1000, description="Number of records per page"),
@@ -210,7 +210,7 @@ class CustomPagination(Pagination[ModelType]):
     pages: int = 0
 
     @classmethod
-    def from_query(
+    def build(
         cls,
         page: int = Query(1, ge=1, description="Page number to retrieve"),
         size: int = Query(10, ge=1, le=50, description="Number of records per page"),
@@ -231,6 +231,6 @@ class CustomPagination(Pagination[ModelType]):
 
 **Explanation**
 
-- `from_query`: Defines how query parameters are parsed into the pagination instance. In this example, it uses page and size with constraints (e.g., size capped at 50).
+- `build`: Defines how query parameters are parsed into the pagination instance. In this example, it uses page and size with constraints (e.g., size capped at 50).
 - `paginate`: Applies the pagination logic to the queryset, calculating the offset based on the page and size, then limiting the results.
 - `fill_meta`: Computes metadata like the total item count and number of pages, ensuring accurate pagination information in the response.

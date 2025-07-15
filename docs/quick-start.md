@@ -111,7 +111,7 @@ Define which fields to include in your API schemas and how to handle relationshi
 
 ```python title="app/domains/project/meta.py"
 from app.core.models import BASE_FIELDS
-from fastapi_mason.schemas import SchemaMeta, generate_schema_meta
+from fastapi_mason.schemas import SchemaMeta, build_schema_meta
 
 
 class ProjectMeta(SchemaMeta):
@@ -135,7 +135,7 @@ class TaskMeta(SchemaMeta):
 # Create meta for nested schemas with relationships
 def get_project_with_tasks_meta():
     """Project schema with embedded tasks"""
-    return generate_schema_meta(
+    return build_schema_meta(
         ProjectMeta,
         ("tasks", get_task_with_project_meta()),
     )
@@ -143,7 +143,7 @@ def get_project_with_tasks_meta():
 
 def get_task_with_project_meta():
     """Task schema with embedded project data"""
-    return generate_schema_meta(TaskMeta, ("project", ProjectMeta))
+    return build_schema_meta(TaskMeta, ("project", ProjectMeta))
 ```
 
 ### 5. Generate Schemas
@@ -162,7 +162,7 @@ from app.domains.project.meta import (
     get_task_with_project_meta,
 )
 from app.domains.project.models import Project, Task
-from fastapi_mason.schemas import ConfigSchemaMeta, generate_schema, rebuild_schema
+from fastapi_mason.schemas import ConfigSchemaMeta, build_schema, rebuild_schema
 
 """
 https://tortoise.github.io/examples/pydantic.html?h=init_models#early-model-init
@@ -172,10 +172,10 @@ https://github.com/bubaley/fastapi-mason/blob/main/app/core/database.py
 Tortoise.init_models(["app.domains.project.models"], "models")
 
 # Simple project schema
-ProjectReadSchema = generate_schema(Project, meta=ProjectMeta)
+ProjectReadSchema = build_schema(Project, meta=ProjectMeta)
 
 # Detailed project schema with tasks (handles circular references)
-ProjectDetailSchema = generate_schema(
+ProjectDetailSchema = build_schema(
     Project,
     meta=get_project_with_tasks_meta(),
     config=ConfigSchemaMeta(allow_cycles=True),  # Handle circular references
@@ -192,7 +192,7 @@ class ProjectStatsSchema(BaseModel):
 
 
 # Task schemas
-TaskReadSchema = generate_schema(Task, meta=get_task_with_project_meta())
+TaskReadSchema = build_schema(Task, meta=get_task_with_project_meta())
 TaskCreateSchema = rebuild_schema(TaskReadSchema, exclude_readonly=True)
 
 # Type checking support
@@ -267,7 +267,7 @@ class TaskViewSet(BaseViewSet[Task]):
     @action(methods=["GET"], response_model=PaginatedResponseDataWrapper[TaskReadSchema, PageNumberPagination])
     async def list(
         self,
-        pagination: PageNumberPagination = Depends(PageNumberPagination.from_query),
+        pagination: PageNumberPagination = Depends(PageNumberPagination.build),
         project_id: bool = Query(...),
     ):
         """Override list method"""
@@ -393,14 +393,14 @@ And tasks endpoints.
 
 ### 1. **Relationship Handling**
 
-- ForeignKey and related objects are automatically included in schemas using `generate_schema_meta`.
+- ForeignKey and related objects are automatically included in schemas using `build_schema_meta`.
 - Nested object serialization (e.g., project with tasks, task with project).
 - Circular reference support with `ConfigSchemaMeta(allow_cycles=True)`.
 
 ### 2. **Flexible Schema Generation**
 
 - Different schemas for list and detail views.
-- Customizable field inclusion through meta classes (`SchemaMeta`, `generate_schema_meta`).
+- Customizable field inclusion through meta classes (`SchemaMeta`, `build_schema_meta`).
 - Generation of nested schemas for related models.
 
 ### 3. **Base and Custom ViewSets**

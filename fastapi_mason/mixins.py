@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING, Generic
 from fastapi import Depends
 from pydantic import BaseModel
 
-from fastapi_mason.pagination import DisabledPagination
-from fastapi_mason.routes import BASE_ROUTE_PATHS, add_wrapped_route
+from fastapi_mason.lookups import BaseLookup
+from fastapi_mason.pagination import DisabledPagination, Pagination
+from fastapi_mason.routes import add_wrapped_route, build_route_path
 from fastapi_mason.types import ModelType
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ class ListMixin(Generic[ModelType]):
 
     def add_list_route(self: 'GenericViewSet'):  # type: ignore
         async def list_endpoint(
-            pagination=Depends(self.pagination.from_query),
+            pagination: Pagination[ModelType] = Depends(self.pagination.build),
         ):
             queryset = self.get_queryset()
 
@@ -44,7 +45,7 @@ class ListMixin(Generic[ModelType]):
         add_wrapped_route(
             viewset=self,
             name='list',
-            path=BASE_ROUTE_PATHS['list'],
+            path=build_route_path(self, 'list'),
             endpoint=list_endpoint,
             methods=['GET'],
             response_model=self.get_list_response_model(),
@@ -59,8 +60,8 @@ class RetrieveMixin(Generic[ModelType]):
         self.add_retrieve_route()  # type: ignore
 
     def add_retrieve_route(self: 'GenericViewSet'):  # type: ignore
-        async def retrieve_endpoint(item_id: int):
-            obj = await self.get_object(item_id)
+        async def retrieve_endpoint(lookup: BaseLookup = Depends(self.lookup_class.build)):
+            obj: ModelType = await self.get_object(lookup.value)
             result = await self.read_schema.from_tortoise_orm(obj)  # type: ignore
 
             if self.single_wrapper:
@@ -71,7 +72,7 @@ class RetrieveMixin(Generic[ModelType]):
         add_wrapped_route(
             viewset=self,
             name='retrieve',
-            path=BASE_ROUTE_PATHS['retrieve'],
+            path=build_route_path(self, 'retrieve', is_detail=True),
             endpoint=retrieve_endpoint,
             methods=['GET'],
             response_model=self.get_single_response_model(),
@@ -90,8 +91,8 @@ class CreateMixin(Generic[ModelType]):
             data = await self.validate_data(data)
             if isinstance(data, BaseModel):
                 data = data.model_dump(exclude_unset=True)
-
-            obj = self.model(**data)
+            obj: ModelType = self.model()
+            obj.update_from_dict(data)
             await self.before_save(obj)
             obj = await self.perform_create(obj)  # type: ignore
             await self.after_save(obj)
@@ -105,7 +106,7 @@ class CreateMixin(Generic[ModelType]):
         add_wrapped_route(
             viewset=self,
             name='create',
-            path=BASE_ROUTE_PATHS['create'],
+            path=build_route_path(self, 'create'),
             endpoint=create_endpoint,
             methods=['POST'],
             response_model=self.get_single_response_model(),
@@ -126,15 +127,13 @@ class UpdateMixin(Generic[ModelType]):
         self.add_update_route()  # type: ignore
 
     def add_update_route(self: 'GenericViewSet'):  # type: ignore
-        async def update_endpoint(item_id: int, data: self.update_schema):  # type: ignore
-            obj = await self.get_object(item_id)
+        async def update_endpoint(data: self.update_schema, lookup: BaseLookup = Depends(self.lookup_class.build)):  # type: ignore
+            obj: ModelType = await self.get_object(lookup.value)
 
             data = await self.validate_data(data)
             if isinstance(data, BaseModel):
                 data = data.model_dump(exclude_unset=True)
-
-            for key, value in data.items():
-                setattr(obj, key, value)
+            obj.update_from_dict(data)
 
             await self.before_save(obj)
             obj = await self.perform_update(obj)  # type: ignore
@@ -149,7 +148,7 @@ class UpdateMixin(Generic[ModelType]):
         add_wrapped_route(
             viewset=self,
             name='update',
-            path=BASE_ROUTE_PATHS['update'],
+            path=build_route_path(self, 'update', is_detail=True),
             endpoint=update_endpoint,
             methods=['PUT', 'PATCH'],
             response_model=self.get_single_response_model(),
@@ -169,14 +168,14 @@ class DestroyMixin(Generic[ModelType]):
         self.add_destroy_route()  # type: ignore
 
     def add_destroy_route(self: 'GenericViewSet'):  # type: ignore
-        async def destroy_endpoint(item_id: int):
-            obj = await self.get_object(item_id)
+        async def destroy_endpoint(lookup: BaseLookup = Depends(self.lookup_class.build)):
+            obj = await self.get_object(lookup.value)
             await self.perform_destroy(obj)  # type: ignore
 
         add_wrapped_route(
             viewset=self,
             name='destroy',
-            path=BASE_ROUTE_PATHS['destroy'],
+            path=build_route_path(self, 'destroy', is_detail=True),
             endpoint=destroy_endpoint,
             methods=['DELETE'],
             status_code=204,

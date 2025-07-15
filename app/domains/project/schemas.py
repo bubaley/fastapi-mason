@@ -4,9 +4,9 @@ from tortoise.contrib.pydantic import PydanticModel
 
 from app.domains.project.meta import get_project_with_tasks_meta, get_task_with_project_meta
 from app.domains.project.models import Project, Task
-from fastapi_mason.schemas import ConfigSchemaMeta, generate_schema, rebuild_schema
+from fastapi_mason.schemas import ConfigSchemaMeta, build_schema, rebuild_schema
 
-ProjectReadSchema = generate_schema(
+ProjectReadSchema = build_schema(
     Project,
     meta=get_project_with_tasks_meta(),
     config=ConfigSchemaMeta(allow_cycles=True),
@@ -18,7 +18,7 @@ ProjectCreateSchema = rebuild_schema(
 )
 
 
-TaskReadSchema = generate_schema(Task, meta=get_task_with_project_meta())
+TaskReadSchema = build_schema(Task, meta=get_task_with_project_meta())
 TaskCreateSchema = rebuild_schema(TaskReadSchema, exclude_readonly=True)
 
 

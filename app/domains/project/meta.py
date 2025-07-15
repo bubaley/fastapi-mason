@@ -1,6 +1,6 @@
 from app.core.models import BASE_FIELDS
 from app.domains.company.meta import CompanyMeta
-from fastapi_mason.schemas import SchemaMeta, generate_schema_meta
+from fastapi_mason.schemas import SchemaMeta, build_schema_meta
 
 
 class ProjectMeta(SchemaMeta):
@@ -21,7 +21,7 @@ class TaskMeta(SchemaMeta):
 
 
 def get_project_with_tasks_meta():
-    return generate_schema_meta(
+    return build_schema_meta(
         ProjectMeta,
         ('company', CompanyMeta),
         ('tasks', get_task_with_project_meta()),
@@ -29,4 +29,4 @@ def get_project_with_tasks_meta():
 
 
 def get_task_with_project_meta():
-    return generate_schema_meta(TaskMeta, ('project', ProjectMeta))
+    return build_schema_meta(TaskMeta, ('project', ProjectMeta))

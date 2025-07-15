@@ -49,6 +49,7 @@ nav:
         - Introduction: viewsets/index.md
         - Lifecycle Hooks: viewsets/lifecycle-hooks.md
         - Actions: viewsets/actions.md
+        - Lookups: viewsets/lookups.md
         - Generics & Mixins: viewsets/generics-mixins.md
     - Meta & Schemas: schemas.md
     - Permissions: permissions.md

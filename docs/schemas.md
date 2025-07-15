@@ -11,7 +11,7 @@ The `config` parameter uses `PydanticMetaData`, allowing you to apply all standa
 The schema system consists of three main components:
 
 1. **SchemaMeta** - Defines which fields to include/exclude
-2. **generate_schema()** - Creates Pydantic models from Tortoise models
+2. **build_schema()** - Creates Pydantic models from Tortoise models
 3. **rebuild_schema()** - Modifies existing schemas for different use cases
 
 ## SchemaMeta Classes
@@ -73,12 +73,12 @@ class ProjectMeta(SchemaMeta):
 ```
 
 ```python title="app/domains/project/schemas.py"
-from fastapi_mason.schemas import generate_schema, rebuild_schema
+from fastapi_mason.schemas import build_schema, rebuild_schema
 from app.domains.project.models import Project
 from app.domains.project.meta import ProjectMeta
 
 # Generate read schema (includes all fields)
-ProjectReadSchema = generate_schema(Project, meta=ProjectMeta)
+ProjectReadSchema = build_schema(Project, meta=ProjectMeta)
 
 # Generate create schema (excludes readonly fields)
 ProjectCreateSchema = rebuild_schema(
@@ -105,7 +105,7 @@ class Task(BaseModel):
 ### Meta Classes for Relationships
 
 ```python title="app/domains/project/meta.py"
-from fastapi_mason.schemas import SchemaMeta, generate_schema_meta
+from fastapi_mason.schemas import SchemaMeta, build_schema_meta
 
 class ProjectMeta(SchemaMeta):
     include = (
@@ -125,27 +125,27 @@ class TaskMeta(SchemaMeta):
 # Create meta for nested schemas with relationships
 def get_project_with_tasks_meta():
     """Project schema with embedded tasks"""
-    return generate_schema_meta(
+    return build_schema_meta(
         ProjectMeta,
         ('tasks', get_task_with_project_meta()),
     )
 
 def get_task_with_project_meta():
     """Task schema with embedded project data"""
-    return generate_schema_meta(TaskMeta, ('project', ProjectMeta))
+    return build_schema_meta(TaskMeta, ('project', ProjectMeta))
 ```
 
 ### Schema Generation with Relationships
 
 ```python title="app/domains/project/schemas.py"
-from fastapi_mason.schemas import ConfigSchemaMeta, generate_schema, rebuild_schema
+from fastapi_mason.schemas import ConfigSchemaMeta, build_schema, rebuild_schema
 
 # Simple schemas
-ProjectReadSchema = generate_schema(Project, meta=ProjectMeta)
-TaskReadSchema = generate_schema(Task, meta=get_task_with_project_meta())
+ProjectReadSchema = build_schema(Project, meta=ProjectMeta)
+TaskReadSchema = build_schema(Task, meta=get_task_with_project_meta())
 
 # Detailed project schema with tasks (handles circular references)
-ProjectDetailSchema = generate_schema(
+ProjectDetailSchema = build_schema(
     Project,
     meta=get_project_with_tasks_meta(),
     config=ConfigSchemaMeta(allow_cycles=True),  # Handle circular references
@@ -162,7 +162,7 @@ The `rebuild_schema()` function allows you to create variations of existing sche
 
 ```python
 # Original schema includes all fields
-ProjectReadSchema = generate_schema(Project, meta=ProjectMeta)
+ProjectReadSchema = build_schema(Project, meta=ProjectMeta)
 
 # Create schema excludes readonly fields like id, created_at, updated_at
 ProjectCreateSchema = rebuild_schema(
@@ -197,7 +197,7 @@ config = ConfigSchemaMeta(
     include=('custom_field',),
 )
 
-schema = generate_schema(
+schema = build_schema(
     Project,
     meta=ProjectMeta,
     config=config
@@ -213,7 +213,7 @@ from typing import TYPE_CHECKING
 from tortoise.contrib.pydantic import PydanticModel
 
 # Runtime schema generation
-ProjectSchema = generate_schema(Project, meta=ProjectMeta)
+ProjectSchema = build_schema(Project, meta=ProjectMeta)
 
 # Type hints for IDE
 if TYPE_CHECKING:
@@ -268,8 +268,8 @@ class ProjectMetas:
         include = ('name', 'description')
 
 # Use specific meta for different contexts
-ProjectListSchema = generate_schema(Project, meta=ProjectMetas.List)
-ProjectDetailSchema = generate_schema(Project, meta=ProjectMetas.Detail)
+ProjectListSchema = build_schema(Project, meta=ProjectMetas.List)
+ProjectDetailSchema = build_schema(Project, meta=ProjectMetas.Detail)
 ```
 
 ## Common Patterns
@@ -278,8 +278,8 @@ ProjectDetailSchema = generate_schema(Project, meta=ProjectMetas.Detail)
 
 ```python
 # Different schemas for different API responses
-ProjectListSchema = generate_schema(Project, meta=ProjectListMeta)  # Minimal fields
-ProjectDetailSchema = generate_schema(Project, meta=ProjectDetailMeta)  # Full fields
+ProjectListSchema = build_schema(Project, meta=ProjectListMeta)  # Minimal fields
+ProjectDetailSchema = build_schema(Project, meta=ProjectDetailMeta)  # Full fields
 ProjectCreateSchema = rebuild_schema(ProjectDetailSchema, exclude_readonly=True)
 ```
 
@@ -287,7 +287,7 @@ ProjectCreateSchema = rebuild_schema(ProjectDetailSchema, exclude_readonly=True)
 
 ```python
 # Explicit naming for better OpenAPI documentation
-ProjectReadSchema = generate_schema(
+ProjectReadSchema = build_schema(
     Project,
     meta=ProjectMeta,
     name="ProjectResponse"

@@ -11,9 +11,10 @@ from fastapi import APIRouter, HTTPException, Request
 from tortoise.contrib.pydantic import PydanticModel
 from tortoise.queryset import QuerySet
 
+from fastapi_mason.lookups import BaseLookup, IntegerLookup
 from fastapi_mason.pagination import DisabledPagination, Pagination
 from fastapi_mason.permissions import BasePermission, check_permissions
-from fastapi_mason.routes import register_action_route, sort_routes_by_specificity
+from fastapi_mason.routes import TrailingSlashMode, register_action_route, sort_routes_by_specificity
 from fastapi_mason.state import BaseStateManager
 from fastapi_mason.types import ModelType
 from fastapi_mason.wrappers import PaginatedResponseWrapper, ResponseWrapper
@@ -35,6 +36,10 @@ class GenericViewSet(Generic[ModelType]):
     read_schema: Optional[type[PydanticModel]] | None = None
     many_read_schema: Optional[type[PydanticModel]] = None
 
+    # Lookups
+    lookup_field: str = 'id'
+    lookup_class: Type[BaseLookup] = IntegerLookup
+
     # Pagination and response wrappers
     pagination: type[Pagination[ModelType]] = DisabledPagination[ModelType]
     list_wrapper: Optional[type[PaginatedResponseWrapper] | type[ResponseWrapper]] = None
@@ -45,6 +50,7 @@ class GenericViewSet(Generic[ModelType]):
 
     # Router configuration
     router: APIRouter
+    trailing_slash: TrailingSlashMode = 'strip'
 
     # State configuration
     state_class: type[BaseStateManager[Any]] = BaseStateManager
@@ -115,10 +121,10 @@ class GenericViewSet(Generic[ModelType]):
         """Get base queryset for the model."""
         return self.model.all()
 
-    async def get_object(self, item_id: int) -> ModelType:
+    async def get_object(self, value: Any) -> ModelType:
         """Get single object by ID with permission check."""
         queryset = self.get_queryset()
-        obj = await queryset.get_or_none(id=item_id)
+        obj = await queryset.get_or_none(**{self.lookup_field: value})
         if not obj:
             raise HTTPException(status_code=404, detail='Not found')
 

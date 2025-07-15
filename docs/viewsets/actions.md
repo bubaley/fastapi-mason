@@ -41,7 +41,7 @@ You can override standard CRUD methods (such as `list`, `retrieve`, etc.) using 
 @action(methods=["GET"], response_model=PaginatedResponseDataWrapper[TaskReadSchema, PageNumberPagination])
 async def list(
     self,
-    pagination: PageNumberPagination = Depends(PageNumberPagination.from_query),
+    pagination: PageNumberPagination = Depends(PageNumberPagination.build),
     project_id: bool = Query(...),
 ):
     """Override list method"""
