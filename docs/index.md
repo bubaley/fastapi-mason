@@ -3,13 +3,14 @@ title: FastAPI Mason — Build REST APIs with Django Patterns in FastAPI
 description: FastAPI Mason brings Django REST Framework patterns to FastAPI. Build robust APIs with ViewSets, automatic CRUD, permissions, and pagination using Tortoise ORM.
 keywords: FastAPI, Django REST Framework, ViewSets, REST API, Tortoise ORM, Python Backend, API Development, CRUD operations, FastAPI Mason
 ---
-
 <p align="center">
-  <img align="center" src="assets/logo.png" alt="FastAPI Mason - Django REST Framework for FastAPI" width="200"/>
   <h1 align="center">FastAPI Mason</h1>
 </p>
 <p align="center">
-  <i>Build REST APIs with Django REST Framework patterns in FastAPI</i>
+  <img align="center" src="assets/logo.png" alt="FastAPI Mason - Django REST Framework for FastAPI" width="250"/>
+</p>
+<p align="center">
+  <span>Build REST APIs with Django REST Framework patterns in FastAPI</span>
 </p>
 <p align="center">
 <a href="https://pypi.org/project/fastapi-mason/">

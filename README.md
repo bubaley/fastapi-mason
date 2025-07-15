@@ -2,7 +2,7 @@
 
 <p align="center">
   <img align="center" src="docs/assets/logo.png" alt="logo" width="200"/>
-  <h2 align="center">FastAPI Mason</h2>
+  <h1 align="center">FastAPI Mason</h1>
 </p>
 <p align="center" markdown=1>
   <i>Build REST APIs with Django REST Framework patterns in FastAPI</i>
