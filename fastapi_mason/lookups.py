@@ -28,7 +28,7 @@ class BaseLookup(ABC, BaseModel, Generic[T]):
 
 
 def build_lookup_class(class_name: str, lookup_url_kwarg: str, value_type: Type[T]) -> Type[BaseLookup[T]]:
-    def build(cls, value: T = Path(alias=lookup_url_kwarg)) -> BaseLookup[T]:
+    def build(cls, value: value_type = Path(alias=lookup_url_kwarg)) -> BaseLookup[T]:  # type: ignore
         return cls(**{'value': value})
 
     class_dict = {
