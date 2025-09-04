@@ -16,6 +16,7 @@ FastAPI Mason ViewSets support lifecycle hooks that let you customize object pro
 | `after_save`       | After saving the object (create/update)              |
 | `perform_create`   | When creating an object (POST)                       |
 | `perform_update`   | When updating an object (PUT/PATCH)                  |
+| `perform_save`     | When creating or updating an object (PUT/PATCH/POST) |
 | `perform_destroy`  | When deleting an object (DELETE)                     |
 
 You can override any of these methods in your ViewSet to add custom logic. Example:
@@ -34,10 +35,12 @@ class CompanyViewSet(ModelViewSet[Company]):
         pass
 
     async def perform_create(self, obj: Company):
-        await obj.save()
-        return obj
+        return await self.perform_save(obj)
 
     async def perform_update(self, obj: Company):
+        return await self.perform_save(obj)
+
+    async def perform_save(self, obj: Company):
         await obj.save()
         return obj
 
@@ -51,6 +54,7 @@ Call order for create/update:
 1. `validate_data`
 2. `before_save`
 3. `perform_create` / `perform_update`
-4. `after_save`
+4. `perform_save`
+5. `after_save`
 
 For deletion, only `perform_destroy` is called.

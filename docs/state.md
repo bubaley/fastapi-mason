@@ -136,6 +136,18 @@ def get_permissions(self):
 
 Request id in uuid4 format
 
+### validated_data
+
+The validated request data for create/update operations:
+
+```python
+async def perform_save(self, obj):
+    # Access validated data that was submitted
+    validated_data: <create_schema / update_schema> = self.state.validated_data
+```
+
+This property is only available during create and update operations and contains the validated data that was submitted in the request.
+
 
 ## Custom State Data
 
