@@ -36,11 +36,7 @@ class ListMixin(Generic[ModelType]):
                 return await self.get_paginated_response(queryset=queryset, pagination=pagination)
 
             results = await self.many_read_schema.from_queryset(queryset)  # type: ignore
-
-            if self.list_wrapper:
-                return self.list_wrapper.wrap(data=results, pagination=pagination)
-
-            return results
+            return self.get_list_response(results)
 
         add_wrapped_route(
             viewset=self,
@@ -63,11 +59,7 @@ class RetrieveMixin(Generic[ModelType]):
         async def retrieve_endpoint(lookup: BaseLookup = Depends(self.lookup_class.build)):
             obj: ModelType = await self.get_object(lookup.value)
             result = await self.read_schema.from_tortoise_orm(obj)  # type: ignore
-
-            if self.single_wrapper:
-                return self.single_wrapper.wrap(data=result)
-
-            return result
+            return self.get_sigle_response(result)
 
         add_wrapped_route(
             viewset=self,
@@ -89,6 +81,7 @@ class CreateMixin(Generic[ModelType]):
     def add_create_route(self: 'GenericViewSet'):  # type: ignore
         async def create_endpoint(data: self.create_schema):  # type: ignore
             data = await self.validate_data(data)
+            self.state.validated_data = data
             if isinstance(data, BaseModel):
                 data = data.model_dump(exclude_unset=True)
             obj: ModelType = self.model()
@@ -97,11 +90,7 @@ class CreateMixin(Generic[ModelType]):
             obj = await self.perform_create(obj)  # type: ignore
             await self.after_save(obj)
             result = await self.read_schema.from_tortoise_orm(obj)  # type: ignore
-
-            if self.single_wrapper:
-                return self.single_wrapper.wrap(data=result)
-
-            return result
+            return self.get_sigle_response(result)
 
         add_wrapped_route(
             viewset=self,
@@ -115,8 +104,7 @@ class CreateMixin(Generic[ModelType]):
 
     async def perform_create(self, obj: ModelType) -> ModelType:
         """Perform the actual object creation."""
-        await obj.save()
-        return obj
+        return await self.perform_save(obj)
 
 
 class UpdateMixin(Generic[ModelType]):
@@ -131,6 +119,7 @@ class UpdateMixin(Generic[ModelType]):
             obj: ModelType = await self.get_object(lookup.value)
 
             data = await self.validate_data(data)
+            self.state.validated_data = data
             if isinstance(data, BaseModel):
                 data = data.model_dump(exclude_unset=True)
             obj.update_from_dict(data)
@@ -139,11 +128,7 @@ class UpdateMixin(Generic[ModelType]):
             obj = await self.perform_update(obj)  # type: ignore
             await self.after_save(obj)
             result = await self.read_schema.from_tortoise_orm(obj)  # type: ignore
-
-            if self.single_wrapper:
-                return self.single_wrapper.wrap(data=result)
-
-            return result
+            return self.get_sigle_response(result)
 
         add_wrapped_route(
             viewset=self,
@@ -156,8 +141,7 @@ class UpdateMixin(Generic[ModelType]):
 
     async def perform_update(self, obj: ModelType) -> ModelType:
         """Perform the actual object update."""
-        await obj.save()
-        return obj
+        return await self.perform_save(obj)
 
 
 class DestroyMixin(Generic[ModelType]):

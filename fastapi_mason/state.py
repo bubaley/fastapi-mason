@@ -13,6 +13,7 @@ class BaseStateManager(Generic[UserType]):
     request: Optional[Request] = None
     user: Optional[UserType] = None
     action: Optional[str] = None
+    validated_data: Any = None
     request_id: str
     _data: dict[str, Any]
 

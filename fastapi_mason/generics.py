@@ -144,6 +144,11 @@ class GenericViewSet(Generic[ModelType]):
         """Perform after save actions."""
         pass
 
+    async def perform_save(self, obj: ModelType) -> ModelType:
+        """Perform the actual object save."""
+        await obj.save()
+        return obj
+
     def get_list_response_model(self) -> Any:
         """Get response model for list endpoint."""
         if self.list_wrapper:
@@ -152,6 +157,16 @@ class GenericViewSet(Generic[ModelType]):
             elif self.list_wrapper and issubclass(self.list_wrapper, PaginatedResponseWrapper):
                 return self.list_wrapper[self.many_read_schema, self.pagination]  # type: ignore
         return list[self.many_read_schema]
+
+    def get_sigle_response(self, data: PydanticModel):
+        if self.single_wrapper:
+            return self.single_wrapper.wrap(data=data)
+        return data
+
+    def get_list_response(self, data: List[PydanticModel]):
+        if self.list_wrapper:
+            return self.list_wrapper.wrap(data=data)
+        return data
 
     def get_single_response_model(self) -> Any:
         """Get response model for single endpoint."""

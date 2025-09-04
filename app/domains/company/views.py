@@ -27,6 +27,9 @@ class CompanyViewSet(BaseModelViewSet[Company]):
             return []
         return [IsAuthenticated()]
 
+    async def perform_save(self, obj):
+        return await super().perform_save(obj)
+
     @action(methods=['GET'], detail=False)
     async def stats(self):
         return 'Hello World!'
