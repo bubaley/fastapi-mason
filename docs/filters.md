@@ -236,22 +236,22 @@ class ProductFilterSet(filters.FilterSet):
     fields = [
         # Text search in name and description
         filters.CharFilter('name', view_name='search', default_lookup='icontains'),
-        
+
         # Price range filtering
         filters.FloatFilter('price', lookups=['gte', 'lte']),
-        
+
         # Category selection
         filters.ChoiceFilter('category', choices=ProductCategory),
-        
+
         # Availability filtering
         filters.BooleanFilter('in_stock'),
-        
+
         # Date filtering
         filters.DateFilter('created_at', lookups=['gte', 'lte', 'year']),
-        
+
         # Brand filtering (multiple selection)
         filters.IntegerFilter('brand_id', lookups=['in']),
-        
+
         # Exclude out-of-stock items
         filters.BooleanFilter('is_available', exclude=True, default_lookup='isnull'),
     ]
@@ -275,17 +275,17 @@ class UserFilterSet(filters.FilterSet):
         # Basic user info
         filters.CharFilter('email', lookups=['exact', 'icontains']),
         filters.CharFilter('first_name', view_name='name', default_lookup='icontains'),
-        
+
         # Age filtering
         filters.IntegerFilter('age', lookups=['gte', 'lte']),
-        
+
         # Status filtering
         filters.BooleanFilter('is_active'),
         filters.ChoiceFilter('role', choices=UserRole),
-        
+
         # Registration date
         filters.DateTimeFilter('created_at', lookups=['gte', 'lte']),
-        
+
         # Relationship filtering (requires proper model setup)
         filters.IntegerFilter('company_id', lookups=['exact', 'in']),
     ]
