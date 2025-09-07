@@ -176,7 +176,7 @@ class FilterSet(metaclass=FilterSetMeta):
 
     def _validate_model(self):
         meta = getattr(self, 'Meta', None)
-        if not meta or not getattr(meta, 'model', None) and type(self) is not FilterSet:
+        if (not meta or not getattr(meta, 'model', None)) and not isinstance(self, EmptyFilterSet):
             raise ValueError(f'Meta.model must be specified for {self.__class__.__name__}')
 
     @classmethod
