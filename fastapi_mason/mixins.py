@@ -29,8 +29,10 @@ class ListMixin(Generic[ModelType]):
     def add_list_route(self: 'GenericViewSet'):  # type: ignore
         async def list_endpoint(
             pagination: Pagination[ModelType] = Depends(self.pagination.build),
+            filters=Depends(self.filterset_class.get_build()),
         ):
             queryset = self.get_queryset()
+            queryset = self.filter_queryset(queryset, filters)
 
             if not isinstance(pagination, DisabledPagination):
                 return await self.get_paginated_response(queryset=queryset, pagination=pagination)
@@ -102,7 +104,7 @@ class CreateMixin(Generic[ModelType]):
             status_code=201,
         )
 
-    async def perform_create(self, obj: ModelType) -> ModelType:
+    async def perform_create(self: 'GenericViewSet', obj: ModelType) -> ModelType:  # type: ignore
         """Perform the actual object creation."""
         return await self.perform_save(obj)
 
@@ -139,7 +141,7 @@ class UpdateMixin(Generic[ModelType]):
             response_model=self.get_single_response_model(),
         )
 
-    async def perform_update(self, obj: ModelType) -> ModelType:
+    async def perform_update(self: 'GenericViewSet', obj: ModelType) -> ModelType:  # type: ignore
         """Perform the actual object update."""
         return await self.perform_save(obj)
 

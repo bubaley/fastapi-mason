@@ -5,7 +5,7 @@ requires = [ "hatchling" ]
 
 [project]
 name = "fastapi-mason"
-version = "0.2.2"
+version = "0.2.3"
 description = "FastAPI Mason is a library for building FastAPI applications with a Django REST Framework-inspired architecture."
 readme = "README.md"
 keywords = [
@@ -69,6 +69,9 @@ format.skip-magic-trailing-comma = false
 lint.extend-select = [ "I" ]
 lint.extend-per-file-ignores."core/settings/*.py" = [ "F403", "F405" ]
 lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.pyright]
+typeCheckingMode = "basic"
 
 [tool.bandit]
 skips = [ "B101" ]

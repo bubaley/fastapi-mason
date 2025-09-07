@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from tortoise.contrib.pydantic import PydanticModel
 from tortoise.queryset import QuerySet
 
+from fastapi_mason.filters import EmptyFilterSet, FilterSet
 from fastapi_mason.lookups import BaseLookup, IntegerLookup
 from fastapi_mason.pagination import DisabledPagination, Pagination
 from fastapi_mason.permissions import BasePermission, check_permissions
@@ -43,10 +44,13 @@ class GenericViewSet(Generic[ModelType]):
     # Pagination and response wrappers
     pagination: type[Pagination[ModelType]] = DisabledPagination[ModelType]
     list_wrapper: Optional[type[PaginatedResponseWrapper] | type[ResponseWrapper]] = None
-    single_wrapper: Optional[type[ResponseWrapper[ModelType]]] = None
+    single_wrapper: Optional[type[ResponseWrapper]] = None
 
     # Permission configuration
     permission_classes: List[Type[BasePermission]] = []
+
+    # Filtering configuration
+    filterset_class: Type[FilterSet] = EmptyFilterSet
 
     # Router configuration
     router: APIRouter
@@ -120,6 +124,18 @@ class GenericViewSet(Generic[ModelType]):
     def get_queryset(self) -> QuerySet[ModelType]:
         """Get base queryset for the model."""
         return self.model.all()
+
+    def get_filter_class(self) -> Optional[Type['FilterSet']]:
+        """Get filter class for this viewset."""
+        return self.filterset_class
+
+    def filter_queryset(
+        self, queryset: QuerySet[ModelType], filter_instance: Optional['FilterSet'] = None
+    ) -> QuerySet[ModelType]:
+        """Apply filters to the queryset."""
+        if filter_instance and hasattr(filter_instance, 'filter_queryset'):
+            return filter_instance.filter_queryset(queryset)
+        return queryset
 
     async def get_object(self, value: Any) -> ModelType:
         """Get single object by ID with permission check."""

@@ -7,4 +7,5 @@ class CompanyMeta(SchemaMeta):
         *BASE_FIELDS,
         'name',
         'full_name',
+        'status',
     )

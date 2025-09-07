@@ -3,7 +3,7 @@
 Django REST Framework-inspired ViewSets and utilities for FastAPI.
 
 This library provides Django-like ViewSets functionality for FastAPI applications,
-including permissions, pagination, and custom actions.
+including permissions, pagination, filtering, and custom actions.
 
 """
 

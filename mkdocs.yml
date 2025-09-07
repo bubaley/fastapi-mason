@@ -55,6 +55,7 @@ nav:
         - Actions: viewsets/actions.md
         - Lookups: viewsets/lookups.md
         - Generics & Mixins: viewsets/generics-mixins.md
+    - Filters: filters.md
     - Schemas & Meta: schemas.md
     - Permissions: permissions.md
     - Pagination: pagination.md
@@ -82,7 +83,7 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      base_path: 
+      base_path:
         - docs
   - pymdownx.superfences
   - pymdownx.tabbed:
@@ -112,7 +113,7 @@ extra:
     provider: google
     property: G-W6DSW1BTC1
   generator: false
-  
+
 # SEO optimization
 extra_css:
   - assets/extra.css

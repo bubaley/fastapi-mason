@@ -23,4 +23,4 @@ Disallow: /*?*
 Sitemap: https://bubaley.github.io/fastapi-mason/sitemap.xml
 
 # Crawl-delay for being respectful to servers
-Crawl-delay: 1 
+Crawl-delay: 1

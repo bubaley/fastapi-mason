@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.core.viewsets import BaseModelViewSet
+from app.domains.company.filters import CompanyFilterSet
 from app.domains.company.models import Company
 from app.domains.company.schemas import CompanyCreateSchema, CompanySchema
 from fastapi_mason.decorators import action, viewset
@@ -14,6 +15,7 @@ class CompanyViewSet(BaseModelViewSet[Company]):
     model = Company
     read_schema = CompanySchema
     create_schema = CompanyCreateSchema
+    filterset_class = CompanyFilterSet
 
     # permission_classes = [IsAuthenticated]
 
